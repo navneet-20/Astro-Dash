@@ -78,6 +78,9 @@
         <!-- Game UI --><div class="flex justify-between items-center p-2 text-white font-bold text-lg">
             <h1 class="text-xl font-extrabold text-cyan-400">Astro Dash</h1>
             <!-- Combined Score and Pause Button --><div class="flex items-center space-x-4">
+                <!-- New Powerup Status Display -->
+                <div id="powerupStatusDisplay" class="text-sm font-semibold text-orange-400 min-w-[150px] text-right"></div>
+                
                 <div id="scoreDisplay">Score: 0</div>
                 <button id="pauseButton" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-md shadow transition duration-150 transform hover:scale-105 hidden">
                     Pause (P)
@@ -176,6 +179,7 @@
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
             const scoreDisplay = document.getElementById('scoreDisplay');
+            const statusDisplay = document.getElementById('powerupStatusDisplay'); // New status display
             const gameOverScreen = document.getElementById('gameOverScreen');
             const startScreen = document.getElementById('startScreen');
             const pauseScreen = document.getElementById('pauseScreen');
@@ -214,8 +218,14 @@
             let isInvincible = false;
             let invincibilityFrames = 0;
             const INVINCIBILITY_DURATION = 600; // 10 seconds * 60 fps
+            
+            let hasGunPowerup = false; // Gun powerup state
+            let gunFrames = 0;
+            const GUN_DURATION = 900; // CHANGED: 15 seconds * 60 fps
+            let bullets = []; // Array for bullets
+
             let obstacles = []; // Array for Asteroids
-            let powerups = []; // Array for Stars (Power-ups)
+            let powerups = []; // Array for Star/Gun (Power-ups)
             
             // Power-up Timing
             const MIN_POWERUP_FRAMES = 720; // 12 seconds * 60 FPS
@@ -346,7 +356,7 @@
                 }
             };
 
-            // --- Dynamic Background Layers ---
+            // --- Dynamic Background Layers (Stars, Planets, Nebula) ---
             let stars = [];
             const STAR_LAYERS = [
                 { count: 40, maxRadius: 1.0, baseSpeed: 0.5, color: '#A9A9A9' }, 
@@ -579,10 +589,10 @@
             
             // --- Powerup (Star) Class ---
             class Star {
-                constructor() {
+                constructor(xPos) { // Modified to accept xPos
                     this.width = (15 + Math.random() * 5) * (canvas.width / 500);
                     this.height = this.width;
-                    this.x = canvas.width;
+                    this.x = xPos; // Use calculated X position
                     this.track = Math.random() < 0.5 ? 0 : 1; 
                     this.y = this.track === 0 ? floorY - this.height : ceilingY;
                 }
@@ -620,6 +630,74 @@
 
                 update() {
                     this.x -= obstacleSpeed;
+                }
+            }
+
+            // --- Powerup (Gun) Class ---
+            class GunPowerup {
+                constructor(xPos) { // Modified to accept xPos
+                    this.width = (15 + Math.random() * 5) * (canvas.width / 500);
+                    this.height = this.width / 2; // Rectangular shape
+                    this.x = xPos; // Use calculated X position
+                    this.track = Math.random() < 0.5 ? 0 : 1;
+                    this.y = this.track === 0 ? floorY - this.height : ceilingY;
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.fillStyle = '#ff6600'; // Orange color for gun
+                    ctx.shadowColor = '#ff6600';
+                    ctx.shadowBlur = 15;
+                    
+                    // Draw Bullet/Missile Shape (A long triangle body with fins)
+                    const w = this.width;
+                    const h = this.height;
+                    const halfH = h / 2;
+                    
+                    ctx.beginPath();
+                    // Body (Rectangle)
+                    ctx.fillRect(this.x, this.y, w * 0.7, h); 
+                    // Tip (Triangle)
+                    ctx.moveTo(this.x + w * 0.7, this.y);
+                    ctx.lineTo(this.x + w * 1.2, this.y + halfH);
+                    ctx.lineTo(this.x + w * 0.7, this.y + h);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Fin 1 (Small white/grey rectangle for detail)
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.fillRect(this.x + w * 0.1, this.y + 0, w * 0.2, h * 0.2);
+                    
+                    ctx.restore();
+                }
+
+                update() {
+                    this.x -= obstacleSpeed;
+                }
+            }
+
+            // --- Bullet Class ---
+            class Bullet {
+                constructor(player) {
+                    this.width = 10 * (canvas.width / 500);
+                    this.height = 3 * (canvas.width / 500);
+                    this.x = player.x + player.width;
+                    this.y = player.y + player.height / 2 - this.height / 2;
+                    this.speed = 15; // Faster than obstacles
+                    this.color = '#ff0000';
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.fillStyle = this.color;
+                    ctx.shadowColor = this.color;
+                    ctx.shadowBlur = 5;
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                    ctx.restore();
+                }
+
+                update() {
+                    this.x += this.speed;
                 }
             }
 
@@ -783,6 +861,16 @@
                 }
             }
 
+            function fireBullet() {
+                if (hasGunPowerup && gameRunning && !isPaused) {
+                    // Simple rate limiting: only allow a new bullet if the last one is far enough or array is empty.
+                    const minFireDistance = 10 * (canvas.width / 500); 
+                    if (bullets.length === 0 || bullets[bullets.length - 1].x < player.x + player.width - minFireDistance) {
+                         bullets.push(new Bullet(player));
+                    }
+                }
+            }
+
             function resetGame() {
                 // Read customization options and apply to player
                 const selectedShape = document.querySelector('input[name="shape"]:checked').value;
@@ -804,10 +892,16 @@
                 // Reset game state
                 obstacles = [];
                 powerups = []; // Reset powerups array
+                bullets = []; // Reset bullets
+                
                 isInvincible = false; // Reset invincibility
                 invincibilityFrames = 0;
+                
+                hasGunPowerup = false; // Reset gun
+                gunFrames = 0;
+
                 isPaused = false; // Reset pause state
-                powerupSpawnCounter = getRandomPowerupFrames(); // Randomize first star spawn
+                powerupSpawnCounter = getRandomPowerupFrames(); // Randomize first powerup spawn
                 pauseScreen.classList.add('hidden'); // Hide pause screen
 
                 score = 0;
@@ -821,6 +915,7 @@
                 gameOverScreen.classList.add('hidden');
                 pauseButton.classList.remove('hidden'); // Show pause button
                 scoreDisplay.textContent = 'Score: 0';
+                statusDisplay.textContent = ''; // Clear status
                 gameRunning = true;
                 gameLoop();
             }
@@ -861,7 +956,32 @@
                         isInvincible = false;
                     }
                 }
+
+                // 2.2 Gun Timer Update
+                if (hasGunPowerup) {
+                    gunFrames--;
+                    if (gunFrames <= 0) {
+                        hasGunPowerup = false;
+                    }
+                }
                 
+                // Update Powerup Status in DOM
+                let statusText = "";
+                let statusColor = 'text-orange-400';
+                
+                if (isInvincible) {
+                    statusText += `STAR: ${Math.ceil(invincibilityFrames/60)}s`;
+                }
+                if (hasGunPowerup) {
+                    if (statusText) statusText += " | ";
+                    statusText += `GUN: ${Math.ceil(gunFrames/60)}s (FIRE: Enter)`;
+                    statusColor = 'text-red-500'; // Change color when gun is active
+                }
+                
+                statusDisplay.textContent = statusText;
+                statusDisplay.className = `text-sm font-semibold min-w-[150px] text-right ${statusColor}`;
+
+
                 // 3. Player Update (Move toward target Y) and Draw
                 player.update();
                 player.draw();
@@ -871,12 +991,27 @@
                     obstacles.push(new Obstacle());
                 }
                 
-                // 4.1 Powerup Spawning (Updated Logic: random 12-18 seconds after previous one is gone)
+                // 4.1 Powerup Spawning (Randomly choose Star or Gun)
                 if (powerups.length === 0) {
                     powerupSpawnCounter--;
                     if (powerupSpawnCounter <= 0) {
-                        powerups.push(new Star());
-                        // Reset counter only after a star is spawned
+                        
+                        // New Logic: Calculate safe spawn position (5 player-widths buffer)
+                        const MIN_SPAWN_BUFFER = player.width * 5; 
+                        let spawnX = canvas.width + MIN_SPAWN_BUFFER;
+                        
+                        // If there is an active obstacle, ensure the powerup spawns well ahead of it.
+                        if (obstacles.length > 0) {
+                            const lastObstacle = obstacles[obstacles.length - 1];
+                            spawnX = Math.max(spawnX, lastObstacle.x + lastObstacle.width + MIN_SPAWN_BUFFER);
+                        }
+
+                        // Randomly choose between spawning a Star or a GunPowerup
+                        if (Math.random() < 0.5) {
+                            powerups.push(new Star(spawnX)); // Pass spawnX
+                        } else {
+                            powerups.push(new GunPowerup(spawnX)); // Pass spawnX
+                        }
                         powerupSpawnCounter = getRandomPowerupFrames(); 
                     }
                 }
@@ -901,27 +1036,56 @@
                 });
 
                 // 5.1 Powerup Update, Draw, and Collection Check
-                powerups.forEach((star, index) => {
-                    star.update();
-                    star.draw();
+                powerups.forEach((powerup, index) => {
+                    powerup.update();
+                    powerup.draw();
 
-                    // Check collision with powerup
-                    if (checkCollision(player, star)) {
-                        // Collect star and activate powerup
-                        isInvincible = true;
-                        invincibilityFrames = INVINCIBILITY_DURATION;
-                        powerups.splice(index, 1); // Remove star
-                        // After collecting, immediately reset the powerup counter for the next spawn
-                        powerupSpawnCounter = getRandomPowerupFrames(); 
+                    if (checkCollision(player, powerup)) {
+                        if (powerup instanceof Star) {
+                            isInvincible = true;
+                            invincibilityFrames = INVINCIBILITY_DURATION;
+                        } else if (powerup instanceof GunPowerup) {
+                            hasGunPowerup = true;
+                            gunFrames = GUN_DURATION;
+                        }
+                        powerups.splice(index, 1); // Remove powerup
+                        powerupSpawnCounter = getRandomPowerupFrames(); // Reset timer after collection
                     }
 
                     // Remove powerups that have moved off screen
-                    if (star.x + star.width < 0) {
+                    if (powerup.x + powerup.width < 0) {
                         powerups.splice(index, 1);
                         // If it moves off-screen without being collected, reset the counter
                         powerupSpawnCounter = getRandomPowerupFrames(); 
                     }
                 });
+
+                // 5.2 Bullet Update and Collision Check
+                bullets.forEach((bullet, bIndex) => {
+                    bullet.update();
+                    bullet.draw();
+
+                    // Check collision with obstacles
+                    let hitObstacleIndex = -1;
+                    obstacles.forEach((obstacle, oIndex) => {
+                        if (checkCollision(bullet, obstacle)) {
+                            hitObstacleIndex = oIndex;
+                        }
+                    });
+
+                    if (hitObstacleIndex !== -1) {
+                        // Remove the hit obstacle and the bullet
+                        obstacles.splice(hitObstacleIndex, 1);
+                        bullets.splice(bIndex, 1);
+                        // Reward score for the successful shot
+                        score += 5; 
+                        scoreDisplay.textContent = `Score: ${score}`;
+                    } else if (bullet.x > canvas.width) {
+                        // Remove the bullet if it moved off screen
+                        bullets.splice(bIndex, 1);
+                    }
+                });
+
 
                 // 6. Draw Track
                 drawTrack(score);
@@ -951,6 +1115,9 @@
                 if (e.code === 'Space' || e.code === 'ArrowUp') {
                     e.preventDefault(); 
                     handleAction(e);
+                } else if (e.code === 'Enter') { // Handle Enter key for firing
+                    e.preventDefault();
+                    fireBullet();
                 } else if (e.code === 'KeyP' || e.code === 'Escape') {
                     if (gameRunning && !startScreen.classList.contains('hidden')) return; // Avoid pausing during config
                     if (gameRunning) {
