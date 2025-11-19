@@ -94,7 +94,7 @@
                 <!-- Shape Selection -->
                 <div class="mb-6">
                     <label class="block text-lg mb-2 font-semibold">Choose Shape:</label>
-                    <div class="flex justify-center space-x-4">
+                    <div class="flex justify-center space-x-4 flex-wrap">
                         <label class="flex items-center space-x-2 cursor-pointer">
                             <input type="radio" name="shape" value="square" checked class="form-radio text-cyan-500">
                             <span class="text-white">Square (Default)</span>
@@ -107,8 +107,21 @@
                             <input type="radio" name="shape" value="triangle" class="form-radio text-cyan-500">
                             <span class="text-white">Triangle</span>
                         </label>
+                        <!-- NEW CUSTOM SHAPE OPTION -->
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="shape" value="custom" class="form-radio text-cyan-500">
+                            <span class="text-white">Custom (JPG/PNG)</span>
+                        </label>
                     </div>
                 </div>
+
+                <!-- NEW FILE UPLOAD SECTION -->
+                <div id="customUploadContainer" class="mt-4 hidden w-full max-w-sm mx-auto p-2 bg-gray-800 rounded-lg">
+                    <input type="file" id="customShipUpload" accept=".jpg, .jpeg, .png" class="text-sm w-full text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100">
+                    <p id="uploadMessage" class="text-xs mt-1 text-gray-400 text-left">Max 400KB file size.</p>
+                </div>
+                <!-- END NEW FILE UPLOAD SECTION -->
+
 
                 <!-- Color Selection -->
                 <div class="mb-8">
@@ -171,7 +184,13 @@
             const finalScore = document.getElementById('finalScore');
             const restartButton = document.getElementById('restartButton');
             const startButton = document.getElementById('startButton');
-            const goHomeButton = document.getElementById('goHomeButton'); // New button
+            const goHomeButton = document.getElementById('goHomeButton'); 
+            
+            // Customization DOM elements
+            const customShipUpload = document.getElementById('customShipUpload');
+            const customUploadContainer = document.getElementById('customUploadContainer');
+            const uploadMessage = document.getElementById('uploadMessage');
+            const shapeRadios = document.querySelectorAll('input[name="shape"]');
 
             // --- Game Constants & Variables ---
             let gameLoopId;
@@ -179,18 +198,24 @@
             let score = 0;
             let scoreInterval = 0;
             
-            // Track positions are now variables, updated on resize
             let floorY; 
             let ceilingY; 
-            const MARGIN_FROM_EDGE = 20; // Distance of the tracks from the top/bottom edge
+            const MARGIN_FROM_EDGE = 20; 
 
-            // Continuous acceleration
             const initialObstacleSpeed = 4;
             let obstacleSpeed = initialObstacleSpeed;
             const accelerationRate = 0.0001; 
             
-            let obstacleSpawnRate = 120; // Frames between spawns
+            let obstacleSpawnRate = 120; 
             let frameCounter = 0;
+
+            // --- GAME STATE VARIABLES ---
+            let customPlayerImage = null;
+            let isInvincible = false;
+            let invincibilityFrames = 0;
+            const INVINCIBILITY_DURATION = 600; // 10 seconds * 60 fps
+            let obstacles = []; // Array for Asteroids
+            let powerups = []; // Array for Stars (Power-ups)
 
             // --- Canvas Resizing & Responsiveness ---
             const ASPECT_RATIO = 2.0; 
@@ -208,20 +233,16 @@
                 player.width = Math.max(25, canvas.width / 20); 
                 player.height = player.width;
 
-                // Re-initialize stars and update player position on resize
                 createStars(); 
                 player.flipTargetY = player.isUpsideDown ? ceilingY : (floorY - player.height);
-                // Only snap current position if game is not running
+                
                 if (!gameRunning) {
                     player.y = player.flipTargetY;
                 }
                 
-                // Redraw initial screens if they are visible
                 if (!gameRunning && startScreen && !startScreen.classList.contains('hidden')) {
                     drawInitialScreen();
-                } else if (!gameRunning && gameOverScreen && !gameOverScreen.classList.contains('hidden')) {
-                    // If game over, just let the overlay sit on top.
-                }
+                } 
             }
             window.addEventListener('resize', resizeCanvas);
 
@@ -238,18 +259,37 @@
                 color: '#0ff',
 
                 flipTargetY: 0, 
-                flipStep: 20, // Fast flip speed
+                flipStep: 20, 
 
                 draw() {
-                    ctx.save();
-                    const drawColor = this.isUpsideDown ? '#f97316' : this.color; 
-                    ctx.fillStyle = drawColor; 
-                    ctx.shadowColor = drawColor;
-                    ctx.shadowBlur = 10;
-                    
                     const halfWidth = this.width / 2;
                     const halfHeight = this.height / 2;
+                    
+                    // Invincibility Flashing Effect: flash every 5 frames
+                    const flash = isInvincible && Math.floor(invincibilityFrames / 5) % 2 === 0;
 
+                    // 1. Draw Custom Image if selected and loaded
+                    if (this.shape === 'custom' && customPlayerImage && customPlayerImage.complete) {
+                        ctx.save();
+                        if (flash) {
+                             // Apply a white overlay for the flash effect
+                            ctx.filter = 'brightness(200%) drop-shadow(0 0 10px white)';
+                        }
+                        ctx.drawImage(customPlayerImage, this.x, this.y, this.width, this.height);
+                        ctx.restore();
+                        return; 
+                    }
+                    
+                    // 2. Standard shapes (Square, Circle, Triangle) get shadow and color
+                    ctx.save();
+                    
+                    const defaultColor = this.isUpsideDown ? '#f97316' : this.color; 
+                    const drawColor = flash ? '#FFFFFF' : defaultColor; 
+
+                    ctx.fillStyle = drawColor; 
+                    ctx.shadowColor = drawColor;
+                    ctx.shadowBlur = flash ? 20 : 10;
+                    
                     if (this.shape === 'square') {
                         ctx.fillRect(this.x, this.y, this.width, this.height);
                     } else if (this.shape === 'circle') {
@@ -259,11 +299,8 @@
                     } else if (this.shape === 'triangle') {
                         // Draw a triangle pointing forward (right)
                         ctx.beginPath();
-                        // Tip (right side)
                         ctx.moveTo(this.x + this.width, this.y + halfHeight); 
-                        // Bottom corner (left-bottom)
                         ctx.lineTo(this.x, this.y + this.height);
-                        // Top corner (left-top)
                         ctx.lineTo(this.x, this.y); 
                         ctx.closePath();
                         ctx.fill();
@@ -287,13 +324,11 @@
                 },
 
                 switchTrack() {
-                    // Only allow switch if snapped to a track (or close enough)
                     const isSnapped = Math.abs(this.y - this.flipTargetY) < 1;
                     if (isSnapped) {
                         const newUpsideDown = !this.isUpsideDown;
                         this.isUpsideDown = newUpsideDown;
                         
-                        // Set the new target Y for the animation
                         this.flipTargetY = newUpsideDown ? ceilingY : (floorY - this.height);
                     }
                 }
@@ -340,10 +375,8 @@
                 });
             }
 
-            // --- Obstacle (Asteroid) Array and Generation ---
-            let obstacles = [];
-            
-            class Asteroid {
+            // --- Obstacle (Asteroid) Class ---
+            class Obstacle {
                 constructor() {
                     this.width = (15 + Math.random() * 15) * (canvas.width / 500);
                     this.height = this.width;
@@ -374,9 +407,61 @@
                     this.x -= obstacleSpeed;
                 }
             }
+            
+            // --- Powerup (Star) Class ---
+            class Star {
+                constructor() {
+                    this.width = (15 + Math.random() * 5) * (canvas.width / 500);
+                    this.height = this.width;
+                    this.x = canvas.width;
+                    this.track = Math.random() < 0.5 ? 0 : 1; 
+                    this.y = this.track === 0 ? floorY - this.height : ceilingY;
+                }
 
-            function spawnObstacle() {
-                obstacles.push(new Asteroid());
+                draw() {
+                    ctx.save();
+                    ctx.fillStyle = '#FFD700'; // Gold color
+                    ctx.shadowColor = '#FFD700';
+                    ctx.shadowBlur = 15;
+                    
+                    // Draw Star shape
+                    const r = this.width / 2;
+                    const cx = this.x + r;
+                    const cy = this.y + r;
+                    const points = 5;
+                    const outerR = r;
+                    const innerR = r / 2;
+
+                    ctx.beginPath();
+                    for (let i = 0; i < points * 2; i++) {
+                        const currentR = i % 2 === 0 ? outerR : innerR;
+                        const angle = (Math.PI / points) * i;
+                        const x = cx + currentR * Math.cos(angle - Math.PI / 2);
+                        const y = cy + currentR * Math.sin(angle - Math.PI / 2);
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                update() {
+                    this.x -= obstacleSpeed;
+                }
+            }
+
+
+            function spawnItems() {
+                 // 1 in 200 chance to spawn a powerup if one is not already on screen
+                if (Math.random() < 0.005 && powerups.length === 0) { 
+                    powerups.push(new Star());
+                } else {
+                    obstacles.push(new Obstacle()); // Spawn Asteroid
+                }
             }
 
             // --- Drawing Functions ---
@@ -396,8 +481,8 @@
             }
 
             function drawTrack(currentScore) {
-                const minH = 180; // Cyan (low score)
-                const maxH = 0;   // Red (high score)
+                const minH = 180; 
+                const maxH = 0;   
                 
                 const scoreCap = 1500;
                 const progress = Math.min(currentScore, scoreCap) / scoreCap;
@@ -406,7 +491,6 @@
                 ctx.strokeStyle = `hsl(${hue}, 80%, 50%)`;
                 ctx.lineWidth = 2 * (canvas.width / 500); 
                 
-                // Draw both tracks
                 ctx.beginPath();
                 ctx.moveTo(0, floorY);
                 ctx.lineTo(canvas.width, floorY);
@@ -421,7 +505,7 @@
             function drawInitialScreen() {
                 drawBackground(0);
                 drawTrack(0);
-                player.draw(); // Draw placeholder player
+                player.draw(); 
                 
                 ctx.fillStyle = '#fff';
                 ctx.font = `${Math.min(24, canvas.width / 20)}px Inter`;
@@ -429,10 +513,81 @@
                 ctx.fillText('Choose your ship and click START', canvas.width / 2, canvas.height / 2);
             }
 
+            // --- Customization Handlers ---
+
+            shapeRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'custom') {
+                        customUploadContainer.classList.remove('hidden');
+                        uploadMessage.textContent = 'Max 400KB file size.';
+                        uploadMessage.classList.remove('text-red-400');
+                        uploadMessage.classList.add('text-gray-400');
+                    } else {
+                        customUploadContainer.classList.add('hidden');
+                    }
+                    // Update player shape for preview
+                    player.shape = radio.value; 
+                    drawInitialScreen();
+                });
+            });
+
+            customShipUpload.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                customPlayerImage = null; // Clear previous image
+
+                if (file) {
+                    const MAX_FILE_SIZE = 400 * 1024; // 400 KBs in bytes
+
+                    // 1. File Size Validation
+                    if (file.size > MAX_FILE_SIZE) {
+                        uploadMessage.textContent = 'Error: File size must be under 400KB!';
+                        uploadMessage.classList.remove('text-gray-400', 'text-green-400');
+                        uploadMessage.classList.add('text-red-400');
+                        customShipUpload.value = ''; // Clear file input
+                        return;
+                    }
+
+                    // 2. File Type Validation
+                    if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+                        uploadMessage.textContent = 'Error: Only JPG or PNG images are allowed.';
+                        uploadMessage.classList.remove('text-gray-400', 'text-green-400');
+                        uploadMessage.classList.add('text-red-400');
+                        customShipUpload.value = ''; 
+                        return;
+                    }
+
+                    // 3. Load Image
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            customPlayerImage = img;
+                            uploadMessage.textContent = `Image loaded: ${file.name}`;
+                            uploadMessage.classList.remove('text-red-400', 'text-gray-400');
+                            uploadMessage.classList.add('text-green-400');
+                            
+                            // Re-draw the screen to show the custom image
+                            drawInitialScreen(); 
+                        };
+                        img.onerror = function() {
+                            uploadMessage.textContent = 'Error: Could not load image data.';
+                            uploadMessage.classList.remove('text-gray-400', 'text-green-400');
+                            uploadMessage.classList.add('text-red-400');
+                        }
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+
+                } else {
+                    uploadMessage.textContent = 'Max 400KB file size.';
+                    uploadMessage.classList.remove('text-red-400', 'text-green-400');
+                    uploadMessage.classList.add('text-gray-400');
+                }
+            });
+
             // --- Core Game Functions ---
 
             function checkCollision(p, o) {
-                // Simple AABB collision detection
                 return p.x < o.x + o.width &&
                        p.x + p.width > o.x &&
                        p.y < o.y + o.height &&
@@ -451,7 +606,12 @@
                 const selectedShape = document.querySelector('input[name="shape"]:checked').value;
                 const selectedColor = document.querySelector('input[name="color"]:checked').value;
                 
-                player.shape = selectedShape;
+                // If 'custom' is selected but no image is loaded, default to square
+                if (selectedShape === 'custom' && !customPlayerImage) {
+                    player.shape = 'square';
+                } else {
+                    player.shape = selectedShape;
+                }
                 player.color = selectedColor;
 
                 // Reset player position and state
@@ -461,6 +621,10 @@
 
                 // Reset game state
                 obstacles = [];
+                powerups = []; // Reset powerups array
+                isInvincible = false; // Reset invincibility
+                invincibilityFrames = 0;
+
                 score = 0;
                 scoreInterval = 0;
                 obstacleSpeed = initialObstacleSpeed; 
@@ -478,7 +642,6 @@
             function goHome() {
                 gameOverScreen.classList.add('hidden');
                 startScreen.classList.remove('hidden');
-                // Redraw the canvas content to show the start screen instructions
                 drawInitialScreen(); 
             }
 
@@ -504,13 +667,21 @@
                     obstacleSpawnRate -= 5;
                 }
                 
+                // 2.1 Invincibility Timer Update
+                if (isInvincible) {
+                    invincibilityFrames--;
+                    if (invincibilityFrames <= 0) {
+                        isInvincible = false;
+                    }
+                }
+                
                 // 3. Player Update (Move toward target Y) and Draw
                 player.update();
                 player.draw();
                 
-                // 4. Obstacle Spawning
+                // 4. Obstacle & Powerup Spawning
                 if (frameCounter % Math.round(obstacleSpawnRate) === 0) {
-                    spawnObstacle();
+                    spawnItems();
                 }
 
                 // 5. Obstacle Update, Draw, and Collision Check
@@ -518,14 +689,36 @@
                     obstacle.update();
                     obstacle.draw();
 
-                    // Check collision
+                    // Check collision with obstacle
                     if (checkCollision(player, obstacle)) {
-                        gameOver();
+                        // GAME OVER check only if NOT invincible
+                        if (!isInvincible) {
+                            gameOver();
+                        }
                     }
 
                     // Remove obstacles that have moved off screen
                     if (obstacle.x + obstacle.width < 0) {
                         obstacles.splice(index, 1);
+                    }
+                });
+
+                // 5.1 Powerup Update, Draw, and Collection Check
+                powerups.forEach((star, index) => {
+                    star.update();
+                    star.draw();
+
+                    // Check collision with powerup
+                    if (checkCollision(player, star)) {
+                        // Collect star and activate powerup
+                        isInvincible = true;
+                        invincibilityFrames = INVINCIBILITY_DURATION;
+                        powerups.splice(index, 1); // Remove star
+                    }
+
+                    // Remove powerups that have moved off screen
+                    if (star.x + star.width < 0) {
+                        powerups.splice(index, 1);
                     }
                 });
 
@@ -538,13 +731,13 @@
 
             // --- Input Handlers ---
             function handleAction(e) {
-                // Check if the game is over and restart
                 if (!gameRunning && !gameOverScreen.classList.contains('hidden')) {
                     resetGame();
-                // Check if the game hasn't started yet and start
                 } else if (!gameRunning && startScreen && !startScreen.classList.contains('hidden')) {
-                    resetGame();
-                // If game is running, switch tracks
+                    // Only start if not on the customization screen or if using space bar (default start)
+                    if (e.code === 'Space' || e.type === 'click') {
+                       resetGame();
+                    }
                 } else if (gameRunning && (e.code === 'Space' || e.type === 'click')) {
                     player.switchTrack();
                 }
@@ -564,12 +757,10 @@
 
             startButton.addEventListener('click', resetGame);
             restartButton.addEventListener('click', resetGame);
-            goHomeButton.addEventListener('click', goHome); // New listener for Go Home
+            goHomeButton.addEventListener('click', goHome); 
 
             // --- Initial State ---
-            // 1. Calculate and set initial canvas size
             resizeCanvas(); 
-            // 2. Initial screen drawing
             drawInitialScreen();
         });
     </script>
