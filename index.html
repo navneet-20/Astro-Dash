@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmic Flip: Gravity Switcher</title>
+    <title>Astro Dash: Gravity Switcher</title>
     <!-- Load Tailwind CSS for easy styling of the main UI -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -19,6 +19,9 @@
         }
 
         #gameContainer {
+            /* Max width set high to give space, but ensures responsiveness on smaller screens */
+            max-width: 900px; 
+            width: 95%; /* Fluid width */
             border: 2px solid #30363d;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
@@ -28,22 +31,22 @@
 
         #gameCanvas {
             display: block;
-            /* We let JavaScript handle the background color now */
             background-color: transparent; 
             border-radius: 8px;
             cursor: pointer;
+            /* width and height are now controlled by JS */
             width: 100%; 
             height: auto;
         }
 
-        /* Game Over message styling */
-        .game-over-overlay {
+        /* Overlay styling (Start and Game Over screens) */
+        .game-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
+            background-color: rgba(0, 0, 0, 0.9);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -53,34 +56,107 @@
             color: #ffffff;
             text-align: center;
         }
+
+        /* Custom color radio button styles */
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            margin: 0 5px;
+            transition: transform 0.1s;
+        }
+        input[type="radio"]:checked + .color-option {
+            border-color: #ffffff;
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
 
-    <div id="gameContainer" class="w-full max-w-lg mx-4">
+    <div id="gameContainer" class="mx-auto">
         <!-- Game UI -->
         <div class="flex justify-between items-center p-2 text-white font-bold text-lg">
-            <h1 class="text-xl font-extrabold text-cyan-400">Cosmic Flip</h1>
+            <h1 class="text-xl font-extrabold text-cyan-400">Astro Dash</h1>
             <div id="scoreDisplay">Score: 0</div>
         </div>
 
         <!-- Canvas where the game is drawn -->
         <div class="relative">
-            <canvas id="gameCanvas" width="500" height="250"></canvas>
+            <!-- Removed width and height attributes here -->
+            <canvas id="gameCanvas"></canvas> 
+            
+            <!-- START/CUSTOMIZATION Screen (Initially Visible) -->
+            <div id="startScreen" class="game-overlay">
+                <div class="text-4xl font-extrabold mb-8 text-cyan-400">CUSTOMIZE SHIP</div>
+                
+                <!-- Shape Selection -->
+                <div class="mb-6">
+                    <label class="block text-lg mb-2 font-semibold">Choose Shape:</label>
+                    <div class="flex justify-center space-x-4">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="shape" value="square" checked class="form-radio text-cyan-500">
+                            <span class="text-white">Square (Default)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="shape" value="circle" class="form-radio text-cyan-500">
+                            <span class="text-white">Circle</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="shape" value="triangle" class="form-radio text-cyan-500">
+                            <span class="text-white">Triangle</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Color Selection -->
+                <div class="mb-8">
+                    <label class="block text-lg mb-2 font-semibold">Choose Color:</label>
+                    <div class="flex justify-center">
+                        <label>
+                            <input type="radio" name="color" value="#0ff" checked class="hidden">
+                            <div class="color-option" style="background-color: #0ff;"></div>
+                        </label>
+                        <label>
+                            <input type="radio" name="color" value="#facc15" class="hidden">
+                            <div class="color-option" style="background-color: #facc15;"></div>
+                        </label>
+                        <label>
+                            <input type="radio" name="color" value="#f43f5e" class="hidden">
+                            <div class="color-option" style="background-color: #f43f5e;"></div>
+                        </label>
+                        <label>
+                            <input type="radio" name="color" value="#a78bfa" class="hidden">
+                            <div class="color-option" style="background-color: #a78bfa;"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <button id="startButton" class="px-8 py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xl rounded-lg shadow-xl transition duration-200 transform hover:scale-105">
+                    START GAME
+                </button>
+                <div class="text-sm mt-4 text-gray-400">Or press SPACE to start with default settings.</div>
+            </div>
+
             <!-- Game Over Screen (initially hidden) -->
-            <div id="gameOverScreen" class="game-over-overlay hidden">
+            <div id="gameOverScreen" class="game-overlay hidden">
                 <div class="text-5xl font-extrabold mb-4 text-red-500">GAME OVER</div>
                 <div id="finalScore" class="text-2xl mb-6 text-gray-200">Final Score: 0</div>
-                <button id="restartButton" class="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg shadow-lg transition duration-200 transform hover:scale-105">
-                    RESTART (SPACE)
-                </button>
+                <div class="flex space-x-4">
+                    <button id="restartButton" class="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg shadow-lg transition duration-200 transform hover:scale-105">
+                        RESTART (SPACE)
+                    </button>
+                    <button id="goHomeButton" class="px-6 py-3 bg-gray-600 hover:bg-gray-500 text-white font-bold rounded-lg shadow-lg transition duration-200 transform hover:scale-105">
+                        GO HOME
+                    </button>
+                </div>
             </div>
         </div>
         
         <!-- Instructions/Controls -->
         <div class="text-gray-400 text-sm mt-3 p-2 text-center">
-            Press <span class="text-cyan-400 font-bold">SPACE</span> or <span class="text-cyan-400 font-bold">click</span> to **FLIP GRAVITY**!
-            Dodge the space debris on both tracks.
+            Press <span class="text-cyan-400 font-bold">SPACE</span> or <span class="text-cyan-400 font-bold">click</span> to FLIP TRACKS!
         </div>
     </div>
 
@@ -91,8 +167,11 @@
             const ctx = canvas.getContext('2d');
             const scoreDisplay = document.getElementById('scoreDisplay');
             const gameOverScreen = document.getElementById('gameOverScreen');
+            const startScreen = document.getElementById('startScreen');
             const finalScore = document.getElementById('finalScore');
             const restartButton = document.getElementById('restartButton');
+            const startButton = document.getElementById('startButton');
+            const goHomeButton = document.getElementById('goHomeButton'); // New button
 
             // --- Game Constants & Variables ---
             let gameLoopId;
@@ -100,10 +179,11 @@
             let score = 0;
             let scoreInterval = 0;
             
-            // Define the Y coordinates for the two tracks
-            const floorY = canvas.height - 20; // Bottom track
-            const ceilingY = 20; // Top track
-            
+            // Track positions are now variables, updated on resize
+            let floorY; 
+            let ceilingY; 
+            const MARGIN_FROM_EDGE = 20; // Distance of the tracks from the top/bottom edge
+
             // Continuous acceleration
             const initialObstacleSpeed = 4;
             let obstacleSpeed = initialObstacleSpeed;
@@ -112,72 +192,109 @@
             let obstacleSpawnRate = 120; // Frames between spawns
             let frameCounter = 0;
 
-            // --- Player Object (Gravity Flips) ---
+            // --- Canvas Resizing & Responsiveness ---
+            const ASPECT_RATIO = 2.0; 
+
+            function resizeCanvas() {
+                const container = document.getElementById('gameContainer');
+                const containerWidth = container.clientWidth; 
+                
+                canvas.width = containerWidth - 20; 
+                canvas.height = canvas.width / ASPECT_RATIO;
+                
+                floorY = canvas.height - MARGIN_FROM_EDGE; 
+                ceilingY = MARGIN_FROM_EDGE;
+                
+                player.width = Math.max(25, canvas.width / 20); 
+                player.height = player.width;
+
+                // Re-initialize stars and update player position on resize
+                createStars(); 
+                player.flipTargetY = player.isUpsideDown ? ceilingY : (floorY - player.height);
+                // Only snap current position if game is not running
+                if (!gameRunning) {
+                    player.y = player.flipTargetY;
+                }
+                
+                // Redraw initial screens if they are visible
+                if (!gameRunning && startScreen && !startScreen.classList.contains('hidden')) {
+                    drawInitialScreen();
+                } else if (!gameRunning && gameOverScreen && !gameOverScreen.classList.contains('hidden')) {
+                    // If game over, just let the overlay sit on top.
+                }
+            }
+            window.addEventListener('resize', resizeCanvas);
+
+
+            // --- Player Object (Animated Flips) ---
             const player = {
                 x: 50,
-                y: floorY - 30,
-                width: 25,
-                height: 25,
-                yVelocity: 0,
+                y: 0, 
+                width: 25, 
+                height: 25, 
                 
-                // Gravity system
-                normalGravity: 0.7, // Downward pull value
-                currentGravity: 0.7, // Starts pulling down
-                flipPower: 12, // Initial velocity burst on flip
-                isStuck: true, // If true, player is locked to a track (not airborne)
-                isUpsideDown: false, // Tracks if player is on the ceiling track
+                isUpsideDown: false,
+                shape: 'square', 
+                color: '#0ff',
+
+                flipTargetY: 0, 
+                flipStep: 20, // Fast flip speed
 
                 draw() {
                     ctx.save();
-                    // Color is cyan for floor, orange/red for ceiling
-                    ctx.fillStyle = this.isUpsideDown ? '#f97316' : '#0ff'; 
-                    ctx.shadowColor = this.isUpsideDown ? '#f97316' : '#0ff';
+                    const drawColor = this.isUpsideDown ? '#f97316' : this.color; 
+                    ctx.fillStyle = drawColor; 
+                    ctx.shadowColor = drawColor;
                     ctx.shadowBlur = 10;
-                    // Draw a square for the spaceship
-                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                    
+                    const halfWidth = this.width / 2;
+                    const halfHeight = this.height / 2;
+
+                    if (this.shape === 'square') {
+                        ctx.fillRect(this.x, this.y, this.width, this.height);
+                    } else if (this.shape === 'circle') {
+                        ctx.beginPath();
+                        ctx.arc(this.x + halfWidth, this.y + halfHeight, halfWidth, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (this.shape === 'triangle') {
+                        // Draw a triangle pointing forward (right)
+                        ctx.beginPath();
+                        // Tip (right side)
+                        ctx.moveTo(this.x + this.width, this.y + halfHeight); 
+                        // Bottom corner (left-bottom)
+                        ctx.lineTo(this.x, this.y + this.height);
+                        // Top corner (left-top)
+                        ctx.lineTo(this.x, this.y); 
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+
                     ctx.restore();
                 },
 
                 update() {
-                    // Only apply physics if the player is not stuck to a track
-                    if (!this.isStuck) {
-                        this.yVelocity += this.currentGravity;
-                        this.y += this.yVelocity;
-                    }
+                    // Smooth movement towards the flip target
+                    if (this.y !== this.flipTargetY) {
+                        const direction = Math.sign(this.flipTargetY - this.y);
+                        this.y += direction * this.flipStep;
 
-                    // Determine the Y position of the track the player is heading toward
-                    const targetTrackY = this.isUpsideDown ? ceilingY : floorY;
-
-                    if (this.isUpsideDown) {
-                        // Collision check for the ceiling (when upside down)
-                        if (this.y <= targetTrackY) {
-                            this.y = targetTrackY;
-                            this.yVelocity = 0;
-                            this.isStuck = true;
-                        }
-                    } else {
-                        // Collision check for the floor (when right side up)
-                        if (this.y >= targetTrackY - this.height) {
-                            this.y = targetTrackY - this.height;
-                            this.yVelocity = 0;
-                            this.isStuck = true;
+                        // Check if we passed the target and snap if so
+                        if (direction > 0 && this.y >= this.flipTargetY ||
+                            direction < 0 && this.y <= this.flipTargetY) {
+                            this.y = this.flipTargetY;
                         }
                     }
                 },
 
-                switchGravity() {
-                    // We only allow a switch if the player is stuck to a surface
-                    if (this.isStuck) {
-                        this.isStuck = false; // Player is now airborne
+                switchTrack() {
+                    // Only allow switch if snapped to a track (or close enough)
+                    const isSnapped = Math.abs(this.y - this.flipTargetY) < 1;
+                    if (isSnapped) {
+                        const newUpsideDown = !this.isUpsideDown;
+                        this.isUpsideDown = newUpsideDown;
                         
-                        // 1. Invert the gravity direction
-                        this.currentGravity *= -1;
-                        this.isUpsideDown = !this.isUpsideDown;
-
-                        // 2. Apply an initial velocity burst (kick) away from the current track
-                        // If currentGravity is now negative (pulling up), apply positive (downward) velocity to push player off floor
-                        // If currentGravity is now positive (pulling down), apply negative (upward) velocity to push player off ceiling
-                        this.yVelocity = this.currentGravity > 0 ? -this.flipPower : this.flipPower;
+                        // Set the new target Y for the animation
+                        this.flipTargetY = newUpsideDown ? ceilingY : (floorY - this.height);
                     }
                 }
             };
@@ -185,9 +302,9 @@
             // --- Dynamic Background (Parallax Stars) ---
             let stars = [];
             const STAR_LAYERS = [
-                { count: 40, maxRadius: 1.0, baseSpeed: 0.5, color: '#A9A9A9' }, // Slow/Distant
-                { count: 20, maxRadius: 1.5, baseSpeed: 1.5, color: '#FFFFFF' }, // Medium
-                { count: 10, maxRadius: 2.0, baseSpeed: 2.5, color: '#ADD8E6' }  // Fast/Close
+                { count: 40, maxRadius: 1.0, baseSpeed: 0.5, color: '#A9A9A9' }, 
+                { count: 20, maxRadius: 1.5, baseSpeed: 1.5, color: '#FFFFFF' }, 
+                { count: 10, maxRadius: 2.0, baseSpeed: 2.5, color: '#ADD8E6' }  
             ];
             
             function createStars() {
@@ -206,7 +323,6 @@
             }
 
             function drawStars() {
-                // Determine speed factor based on current obstacle speed
                 const currentSpeedFactor = (obstacleSpeed / initialObstacleSpeed); 
 
                 stars.forEach(star => {
@@ -215,7 +331,6 @@
                     ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Star speed is based on its layer speed, multiplied by the current game speed factor
                     star.x -= star.baseSpeed * currentSpeedFactor; 
 
                     if (star.x < 0) {
@@ -230,11 +345,10 @@
             
             class Asteroid {
                 constructor() {
-                    this.width = 15 + Math.random() * 15;
+                    this.width = (15 + Math.random() * 15) * (canvas.width / 500);
                     this.height = this.width;
                     this.x = canvas.width;
                     
-                    // Track: 0 for floor, 1 for ceiling (Randomly choose)
                     this.track = Math.random() < 0.5 ? 0 : 1; 
 
                     if (this.track === 0) { // Floor
@@ -252,7 +366,7 @@
                     
                     ctx.fillStyle = '#374151';
                     ctx.beginPath();
-                    ctx.arc(this.x + this.width/4, this.y + this.height/4, 3, 0, Math.PI * 2);
+                    ctx.arc(this.x + this.width/4, this.y + this.height/4, 3 * (canvas.width / 500), 0, Math.PI * 2); 
                     ctx.fill();
                 }
 
@@ -267,50 +381,52 @@
 
             // --- Drawing Functions ---
             
-            // Background color changes from Dark Indigo to Black based on score
             function drawBackground(currentScore) {
-                const minH = 240; // Hue for dark indigo/blue
-                const minS = 50;  // Saturation
-                const minL = 5;   // Luminosity (Very dark)
+                const minH = 240; 
+                const minS = 50;  
+                const minL = 5;   
+                const maxL = 0;   
                 
-                const maxL = 0;   // Luminosity for black
-                
-                // Map score to Luminosity value, capped at score 1500 for full color change
                 const scoreCap = 1500;
                 const progress = Math.min(currentScore, scoreCap) / scoreCap;
-                
-                // Luminosity decreases as score increases
                 const luminosity = minL + (maxL - minL) * progress;
                 
                 ctx.fillStyle = `hsl(${minH}, ${minS}%, ${luminosity}%)`; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // Track color changes from Cyan to Red based on score
             function drawTrack(currentScore) {
                 const minH = 180; // Cyan (low score)
                 const maxH = 0;   // Red (high score)
                 
-                // Map score to Hue value, capped at score 1500 for full color change
                 const scoreCap = 1500;
                 const progress = Math.min(currentScore, scoreCap) / scoreCap;
                 const hue = minH + (maxH - minH) * progress;
                 
-                // Track color shifts from Cyan (180) to Red (0)
                 ctx.strokeStyle = `hsl(${hue}, 80%, 50%)`;
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 2 * (canvas.width / 500); 
                 
-                // Floor Track
+                // Draw both tracks
                 ctx.beginPath();
                 ctx.moveTo(0, floorY);
                 ctx.lineTo(canvas.width, floorY);
                 ctx.stroke();
 
-                // Ceiling Track
                 ctx.beginPath();
                 ctx.moveTo(0, ceilingY);
                 ctx.lineTo(canvas.width, ceilingY);
                 ctx.stroke();
+            }
+
+            function drawInitialScreen() {
+                drawBackground(0);
+                drawTrack(0);
+                player.draw(); // Draw placeholder player
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = `${Math.min(24, canvas.width / 20)}px Inter`;
+                ctx.textAlign = 'center';
+                ctx.fillText('Choose your ship and click START', canvas.width / 2, canvas.height / 2);
             }
 
             // --- Core Game Functions ---
@@ -331,54 +447,64 @@
             }
 
             function resetGame() {
-                // Reset player position and state
-                player.y = floorY - player.height;
-                player.yVelocity = 0;
-                player.currentGravity = player.normalGravity;
-                player.isStuck = true;
-                player.isUpsideDown = false;
+                // Read customization options and apply to player
+                const selectedShape = document.querySelector('input[name="shape"]:checked').value;
+                const selectedColor = document.querySelector('input[name="color"]:checked').value;
+                
+                player.shape = selectedShape;
+                player.color = selectedColor;
 
-                // Reset obstacles and state
+                // Reset player position and state
+                player.isUpsideDown = false;
+                player.flipTargetY = floorY - player.height; 
+                player.y = player.flipTargetY; 
+
+                // Reset game state
                 obstacles = [];
                 score = 0;
                 scoreInterval = 0;
-                obstacleSpeed = initialObstacleSpeed; // Reset speed
+                obstacleSpeed = initialObstacleSpeed; 
                 frameCounter = 0;
                 obstacleSpawnRate = 120;
                 
-                // Hide game over screen and start loop
+                // Hide screens and start loop
+                startScreen.classList.add('hidden');
                 gameOverScreen.classList.add('hidden');
                 scoreDisplay.textContent = 'Score: 0';
                 gameRunning = true;
                 gameLoop();
             }
 
+            function goHome() {
+                gameOverScreen.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+                // Redraw the canvas content to show the start screen instructions
+                drawInitialScreen(); 
+            }
+
             function gameLoop() {
+                if (!gameRunning) return; 
+
                 // 1. Draw Dynamic Background
                 drawBackground(score);
-                
-                // Draw star background and apply speed-based parallax
                 drawStars();
 
                 // 2. Update Game State
                 frameCounter++;
                 scoreInterval++;
                 
-                // Increase score every 5 frames
                 if (scoreInterval % 5 === 0) {
                     score++;
                     scoreDisplay.textContent = `Score: ${score}`;
                 }
 
-                // Increase difficulty (speed and spawn rate) over time
-                obstacleSpeed += accelerationRate; // Continuous speed increase
+                obstacleSpeed += accelerationRate; 
                 
                 if (frameCounter % 500 === 0 && obstacleSpawnRate > 35) {
-                    // Less frequent, but more significant, increase in spawn rate
                     obstacleSpawnRate -= 5;
                 }
                 
-                // 3. Player Update
+                // 3. Player Update (Move toward target Y) and Draw
                 player.update();
                 player.draw();
                 
@@ -403,32 +529,31 @@
                     }
                 });
 
-                // 6. Draw Track (Color changes based on score)
+                // 6. Draw Track
                 drawTrack(score);
 
                 // 7. Request Next Frame
-                if (gameRunning) {
-                    gameLoopId = requestAnimationFrame(gameLoop);
-                }
+                gameLoopId = requestAnimationFrame(gameLoop);
             }
 
             // --- Input Handlers ---
             function handleAction(e) {
-                if (!gameRunning && gameOverScreen.classList.contains('hidden')) {
-                    // Initial start
+                // Check if the game is over and restart
+                if (!gameRunning && !gameOverScreen.classList.contains('hidden')) {
                     resetGame();
-                } else if (!gameRunning && !gameOverScreen.classList.contains('hidden')) {
-                    // Restart from game over screen
+                // Check if the game hasn't started yet and start
+                } else if (!gameRunning && startScreen && !startScreen.classList.contains('hidden')) {
                     resetGame();
+                // If game is running, switch tracks
                 } else if (gameRunning && (e.code === 'Space' || e.type === 'click')) {
-                    // Gravity switch during gameplay
-                    player.switchGravity();
+                    player.switchTrack();
                 }
             }
 
+            // Event Listeners
             document.addEventListener('keydown', (e) => {
                 if (e.code === 'Space' || e.code === 'ArrowUp') {
-                    e.preventDefault(); // Prevent space from scrolling
+                    e.preventDefault(); 
                     handleAction(e);
                 }
             });
@@ -437,18 +562,15 @@
                 handleAction(e);
             });
 
+            startButton.addEventListener('click', resetGame);
             restartButton.addEventListener('click', resetGame);
+            goHomeButton.addEventListener('click', goHome); // New listener for Go Home
 
             // --- Initial State ---
-            createStars(); // Populate stars once
-            // Draw initial background
-            drawBackground(0); 
-            
-            // Display a message to start the game
-            ctx.fillStyle = '#fff';
-            ctx.font = '24px Inter';
-            ctx.textAlign = 'center';
-            ctx.fillText('Press SPACE or Click to Start', canvas.width / 2, canvas.height / 2);
+            // 1. Calculate and set initial canvas size
+            resizeCanvas(); 
+            // 2. Initial screen drawing
+            drawInitialScreen();
         });
     </script>
 </body>
