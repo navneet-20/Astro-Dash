@@ -39,7 +39,7 @@
             height: auto;
         }
 
-        /* Overlay styling (Start and Game Over screens) */
+        /* Overlay styling (Start, Game Over, and Pause screens) */
         .game-overlay {
             position: absolute;
             top: 0;
@@ -79,7 +79,13 @@
         <!-- Game UI -->
         <div class="flex justify-between items-center p-2 text-white font-bold text-lg">
             <h1 class="text-xl font-extrabold text-cyan-400">Astro Dash</h1>
-            <div id="scoreDisplay">Score: 0</div>
+            <!-- Combined Score and Pause Button -->
+            <div class="flex items-center space-x-4">
+                <div id="scoreDisplay">Score: 0</div>
+                <button id="pauseButton" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-md shadow transition duration-150 transform hover:scale-105 hidden">
+                    Pause (P)
+                </button>
+            </div>
         </div>
 
         <!-- Canvas where the game is drawn -->
@@ -165,6 +171,13 @@
                     </button>
                 </div>
             </div>
+            
+            <!-- PAUSE Screen (initially hidden) -->
+            <div id="pauseScreen" class="game-overlay hidden">
+                <div class="text-5xl font-extrabold mb-4 text-cyan-400">PAUSED</div>
+                <div class="text-xl text-gray-200">Press P or click to Resume</div>
+            </div>
+
         </div>
         
         <!-- Instructions/Controls -->
@@ -181,10 +194,12 @@
             const scoreDisplay = document.getElementById('scoreDisplay');
             const gameOverScreen = document.getElementById('gameOverScreen');
             const startScreen = document.getElementById('startScreen');
+            const pauseScreen = document.getElementById('pauseScreen');
             const finalScore = document.getElementById('finalScore');
             const restartButton = document.getElementById('restartButton');
             const startButton = document.getElementById('startButton');
             const goHomeButton = document.getElementById('goHomeButton'); 
+            const pauseButton = document.getElementById('pauseButton');
             
             // Customization DOM elements
             const customShipUpload = document.getElementById('customShipUpload');
@@ -195,6 +210,7 @@
             // --- Game Constants & Variables ---
             let gameLoopId;
             let gameRunning = false;
+            let isPaused = false;
             let score = 0;
             let scoreInterval = 0;
             
@@ -216,6 +232,15 @@
             const INVINCIBILITY_DURATION = 600; // 10 seconds * 60 fps
             let obstacles = []; // Array for Asteroids
             let powerups = []; // Array for Stars (Power-ups)
+            
+            // Power-up Timing (Updated)
+            const MIN_POWERUP_FRAMES = 720; // 12 seconds * 60 FPS
+            const MAX_POWERUP_FRAMES = 1080; // 18 seconds * 60 FPS
+            let powerupSpawnCounter = 0; // Starts at 0, first spawn will be random.
+
+            function getRandomPowerupFrames() {
+                return Math.floor(Math.random() * (MAX_POWERUP_FRAMES - MIN_POWERUP_FRAMES + 1)) + MIN_POWERUP_FRAMES;
+            }
 
             // --- Canvas Resizing & Responsiveness ---
             const ASPECT_RATIO = 2.0; 
@@ -454,16 +479,6 @@
                 }
             }
 
-
-            function spawnItems() {
-                 // 1 in 200 chance to spawn a powerup if one is not already on screen
-                if (Math.random() < 0.005 && powerups.length === 0) { 
-                    powerups.push(new Star());
-                } else {
-                    obstacles.push(new Obstacle()); // Spawn Asteroid
-                }
-            }
-
             // --- Drawing Functions ---
             
             function drawBackground(currentScore) {
@@ -597,8 +612,23 @@
             function gameOver() {
                 gameRunning = false;
                 cancelAnimationFrame(gameLoopId);
+                pauseButton.classList.add('hidden'); // Hide pause button
                 finalScore.textContent = `Final Score: ${score}`;
                 gameOverScreen.classList.remove('hidden');
+            }
+            
+            function togglePause() {
+                if (!gameRunning) return;
+
+                isPaused = !isPaused;
+                if (isPaused) {
+                    pauseScreen.classList.remove('hidden');
+                    pauseButton.textContent = 'Resume (P)';
+                } else {
+                    pauseScreen.classList.add('hidden');
+                    pauseButton.textContent = 'Pause (P)';
+                    gameLoop(); // Resume the loop
+                }
             }
 
             function resetGame() {
@@ -624,6 +654,9 @@
                 powerups = []; // Reset powerups array
                 isInvincible = false; // Reset invincibility
                 invincibilityFrames = 0;
+                isPaused = false; // Reset pause state
+                powerupSpawnCounter = getRandomPowerupFrames(); // Randomize first star spawn
+                pauseScreen.classList.add('hidden'); // Hide pause screen
 
                 score = 0;
                 scoreInterval = 0;
@@ -634,6 +667,7 @@
                 // Hide screens and start loop
                 startScreen.classList.add('hidden');
                 gameOverScreen.classList.add('hidden');
+                pauseButton.classList.remove('hidden'); // Show pause button
                 scoreDisplay.textContent = 'Score: 0';
                 gameRunning = true;
                 gameLoop();
@@ -642,11 +676,12 @@
             function goHome() {
                 gameOverScreen.classList.add('hidden');
                 startScreen.classList.remove('hidden');
+                pauseButton.classList.add('hidden'); // Hide pause button
                 drawInitialScreen(); 
             }
 
             function gameLoop() {
-                if (!gameRunning) return; 
+                if (!gameRunning || isPaused) return; // Check pause state first!
 
                 // 1. Draw Dynamic Background
                 drawBackground(score);
@@ -679,9 +714,19 @@
                 player.update();
                 player.draw();
                 
-                // 4. Obstacle & Powerup Spawning
+                // 4. Obstacle Spawning
                 if (frameCounter % Math.round(obstacleSpawnRate) === 0) {
-                    spawnItems();
+                    obstacles.push(new Obstacle());
+                }
+                
+                // 4.1 Powerup Spawning (Updated Logic: random 12-18 seconds after previous one is gone)
+                if (powerups.length === 0) {
+                    powerupSpawnCounter--;
+                    if (powerupSpawnCounter <= 0) {
+                        powerups.push(new Star());
+                        // Reset counter only after a star is spawned
+                        powerupSpawnCounter = getRandomPowerupFrames(); 
+                    }
                 }
 
                 // 5. Obstacle Update, Draw, and Collision Check
@@ -714,11 +759,15 @@
                         isInvincible = true;
                         invincibilityFrames = INVINCIBILITY_DURATION;
                         powerups.splice(index, 1); // Remove star
+                        // After collecting, immediately reset the powerup counter for the next spawn
+                        powerupSpawnCounter = getRandomPowerupFrames(); 
                     }
 
                     // Remove powerups that have moved off screen
                     if (star.x + star.width < 0) {
                         powerups.splice(index, 1);
+                        // If it moves off-screen without being collected, reset the counter
+                        powerupSpawnCounter = getRandomPowerupFrames(); 
                     }
                 });
 
@@ -731,10 +780,12 @@
 
             // --- Input Handlers ---
             function handleAction(e) {
+                if (isPaused) return; // Ignore everything except the pause key/button when paused
+
                 if (!gameRunning && !gameOverScreen.classList.contains('hidden')) {
                     resetGame();
                 } else if (!gameRunning && startScreen && !startScreen.classList.contains('hidden')) {
-                    // Only start if not on the customization screen or if using space bar (default start)
+                    // Start game from custom screen
                     if (e.code === 'Space' || e.type === 'click') {
                        resetGame();
                     }
@@ -748,16 +799,32 @@
                 if (e.code === 'Space' || e.code === 'ArrowUp') {
                     e.preventDefault(); 
                     handleAction(e);
+                } else if (e.code === 'KeyP' || e.code === 'Escape') {
+                    if (gameRunning && !startScreen.classList.contains('hidden')) return; // Avoid pausing during config
+                    if (gameRunning) {
+                       togglePause();
+                    }
                 }
             });
             
             canvas.addEventListener('click', (e) => {
-                handleAction(e);
+                // If game is running and not paused, flip. If paused, resume.
+                if (gameRunning) {
+                    if (isPaused) {
+                        togglePause();
+                    } else {
+                        handleAction(e);
+                    }
+                } else {
+                    handleAction(e);
+                }
             });
 
+            // Button Listeners
             startButton.addEventListener('click', resetGame);
             restartButton.addEventListener('click', resetGame);
             goHomeButton.addEventListener('click', goHome); 
+            pauseButton.addEventListener('click', togglePause);
 
             // --- Initial State ---
             resizeCanvas(); 
