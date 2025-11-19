@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Astro Dash: Gravity Switcher</title>
-    <!-- Load Tailwind CSS for easy styling of the main UI -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Tailwind CSS for easy styling of the main UI --><script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Custom styles for the game container and canvas */
         body {
@@ -76,11 +75,9 @@
 <body>
 
     <div id="gameContainer" class="mx-auto">
-        <!-- Game UI -->
-        <div class="flex justify-between items-center p-2 text-white font-bold text-lg">
+        <!-- Game UI --><div class="flex justify-between items-center p-2 text-white font-bold text-lg">
             <h1 class="text-xl font-extrabold text-cyan-400">Astro Dash</h1>
-            <!-- Combined Score and Pause Button -->
-            <div class="flex items-center space-x-4">
+            <!-- Combined Score and Pause Button --><div class="flex items-center space-x-4">
                 <div id="scoreDisplay">Score: 0</div>
                 <button id="pauseButton" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-md shadow transition duration-150 transform hover:scale-105 hidden">
                     Pause (P)
@@ -88,17 +85,13 @@
             </div>
         </div>
 
-        <!-- Canvas where the game is drawn -->
-        <div class="relative">
-            <!-- Removed width and height attributes here -->
-            <canvas id="gameCanvas"></canvas> 
+        <!-- Canvas where the game is drawn --><div class="relative">
+            <!-- Removed width and height attributes here --><canvas id="gameCanvas"></canvas> 
             
-            <!-- START/CUSTOMIZATION Screen (Initially Visible) -->
-            <div id="startScreen" class="game-overlay">
+            <!-- START/CUSTOMIZATION Screen (Initially Visible) --><div id="startScreen" class="game-overlay">
                 <div class="text-4xl font-extrabold mb-8 text-cyan-400">CUSTOMIZE SHIP</div>
                 
-                <!-- Shape Selection -->
-                <div class="mb-6">
+                <!-- Shape Selection --><div class="mb-6">
                     <label class="block text-lg mb-2 font-semibold">Choose Shape:</label>
                     <div class="flex justify-center space-x-4 flex-wrap">
                         <label class="flex items-center space-x-2 cursor-pointer">
@@ -113,24 +106,18 @@
                             <input type="radio" name="shape" value="triangle" class="form-radio text-cyan-500">
                             <span class="text-white">Triangle</span>
                         </label>
-                        <!-- NEW CUSTOM SHAPE OPTION -->
-                        <label class="flex items-center space-x-2 cursor-pointer">
+                        <!-- NEW CUSTOM SHAPE OPTION --><label class="flex items-center space-x-2 cursor-pointer">
                             <input type="radio" name="shape" value="custom" class="form-radio text-cyan-500">
                             <span class="text-white">Custom (JPG/PNG)</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- NEW FILE UPLOAD SECTION -->
-                <div id="customUploadContainer" class="mt-4 hidden w-full max-w-sm mx-auto p-2 bg-gray-800 rounded-lg">
+                <!-- NEW FILE UPLOAD SECTION --><div id="customUploadContainer" class="mt-4 hidden w-full max-w-sm mx-auto p-2 bg-gray-800 rounded-lg">
                     <input type="file" id="customShipUpload" accept=".jpg, .jpeg, .png" class="text-sm w-full text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100">
                     <p id="uploadMessage" class="text-xs mt-1 text-gray-400 text-left">Max 400KB file size.</p>
                 </div>
-                <!-- END NEW FILE UPLOAD SECTION -->
-
-
-                <!-- Color Selection -->
-                <div class="mb-8">
+                <!-- END NEW FILE UPLOAD SECTION --><!-- Color Selection --><div class="mb-8">
                     <label class="block text-lg mb-2 font-semibold">Choose Color:</label>
                     <div class="flex justify-center">
                         <label>
@@ -158,8 +145,7 @@
                 <div class="text-sm mt-4 text-gray-400">Or press SPACE to start with default settings.</div>
             </div>
 
-            <!-- Game Over Screen (initially hidden) -->
-            <div id="gameOverScreen" class="game-overlay hidden">
+            <!-- Game Over Screen (initially hidden) --><div id="gameOverScreen" class="game-overlay hidden">
                 <div class="text-5xl font-extrabold mb-4 text-red-500">GAME OVER</div>
                 <div id="finalScore" class="text-2xl mb-6 text-gray-200">Final Score: 0</div>
                 <div class="flex space-x-4">
@@ -172,16 +158,14 @@
                 </div>
             </div>
             
-            <!-- PAUSE Screen (initially hidden) -->
-            <div id="pauseScreen" class="game-overlay hidden">
+            <!-- PAUSE Screen (initially hidden) --><div id="pauseScreen" class="game-overlay hidden">
                 <div class="text-5xl font-extrabold mb-4 text-cyan-400">PAUSED</div>
                 <div class="text-xl text-gray-200">Press P or click to Resume</div>
             </div>
 
         </div>
         
-        <!-- Instructions/Controls -->
-        <div class="text-gray-400 text-sm mt-3 p-2 text-center">
+        <!-- Instructions/Controls --><div class="text-gray-400 text-sm mt-3 p-2 text-center">
             Press <span class="text-cyan-400 font-bold">SPACE</span> or <span class="text-cyan-400 font-bold">click</span> to FLIP TRACKS!
         </div>
     </div>
@@ -233,10 +217,10 @@
             let obstacles = []; // Array for Asteroids
             let powerups = []; // Array for Stars (Power-ups)
             
-            // Power-up Timing (Updated)
+            // Power-up Timing
             const MIN_POWERUP_FRAMES = 720; // 12 seconds * 60 FPS
             const MAX_POWERUP_FRAMES = 1080; // 18 seconds * 60 FPS
-            let powerupSpawnCounter = 0; // Starts at 0, first spawn will be random.
+            let powerupSpawnCounter = 0; 
 
             function getRandomPowerupFrames() {
                 return Math.floor(Math.random() * (MAX_POWERUP_FRAMES - MIN_POWERUP_FRAMES + 1)) + MIN_POWERUP_FRAMES;
@@ -259,6 +243,9 @@
                 player.height = player.width;
 
                 createStars(); 
+                createPlanets(); // Recreate planets on resize
+                createNebulaParticles(); // Recreate nebula on resize
+
                 player.flipTargetY = player.isUpsideDown ? ceilingY : (floorY - player.height);
                 
                 if (!gameRunning) {
@@ -359,7 +346,7 @@
                 }
             };
 
-            // --- Dynamic Background (Parallax Stars) ---
+            // --- Dynamic Background Layers ---
             let stars = [];
             const STAR_LAYERS = [
                 { count: 40, maxRadius: 1.0, baseSpeed: 0.5, color: '#A9A9A9' }, 
@@ -398,6 +385,163 @@
                         star.y = Math.random() * canvas.height;
                     }
                 });
+            }
+
+            // Planets
+            let planets = [];
+            const PLANET_COUNT = 3;
+            const PLANET_COLORS = ['#f43f5e', '#a78bfa', '#0ea5e9', '#22c55e', '#fbbf24'];
+
+            function createPlanets() {
+                planets = [];
+                for (let i = 0; i < PLANET_COUNT; i++) {
+                    planets.push({
+                        x: canvas.width + Math.random() * canvas.width * 2, // Start far right
+                        y: Math.random() * canvas.height,
+                        radius: (20 + Math.random() * 50) * (canvas.width / 500), 
+                        color: PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)],
+                        speed: 0.1 + Math.random() * 0.3, // Slower than stars
+                        hasRings: Math.random() > 0.7,
+                        ringTilt: Math.random() * Math.PI / 4,
+                        ringWidth: (10 + Math.random() * 20) * (canvas.width / 500),
+                        moon: Math.random() > 0.5 ? {
+                            dist: (70 + Math.random() * 30) * (canvas.width / 500),
+                            radius: (5 + Math.random() * 10) * (canvas.width / 500),
+                            angle: Math.random() * Math.PI * 2,
+                            speed: 0.05 + Math.random() * 0.05,
+                            color: '#e0e0e0'
+                        } : null
+                    });
+                }
+            }
+
+            function drawPlanets() {
+                const currentSpeedFactor = (obstacleSpeed / initialObstacleSpeed); 
+
+                planets.forEach(planet => {
+                    // Draw rings first if any
+                    if (planet.hasRings) {
+                        ctx.save();
+                        ctx.translate(planet.x, planet.y);
+                        ctx.rotate(planet.ringTilt);
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, planet.radius * 1.5, planet.ringWidth / 2, 0, 0, Math.PI * 2);
+                        ctx.strokeStyle = planet.color + '80'; // Semi-transparent
+                        ctx.lineWidth = 2 * (canvas.width / 500);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+
+                    // Draw main planet
+                    ctx.fillStyle = planet.color;
+                    ctx.beginPath();
+                    ctx.arc(planet.x, planet.y, planet.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw moon if any
+                    if (planet.moon) {
+                        planet.moon.angle += planet.moon.speed * currentSpeedFactor;
+                        const moonX = planet.x + planet.moon.dist * Math.cos(planet.moon.angle);
+                        const moonY = planet.y + planet.moon.dist * Math.sin(planet.moon.angle);
+                        ctx.fillStyle = planet.moon.color;
+                        ctx.beginPath();
+                        ctx.arc(moonX, moonY, planet.moon.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    planet.x -= planet.speed * currentSpeedFactor;
+
+                    if (planet.x + planet.radius < 0) {
+                        planet.x = canvas.width + Math.random() * canvas.width * 2;
+                        planet.y = Math.random() * canvas.height;
+                        planet.radius = (20 + Math.random() * 50) * (canvas.width / 500);
+                        planet.color = PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)];
+                        planet.speed = 0.1 + Math.random() * 0.3;
+                        planet.hasRings = Math.random() > 0.7;
+                        if(planet.hasRings) {
+                            planet.ringTilt = Math.random() * Math.PI / 4;
+                            planet.ringWidth = (10 + Math.random() * 20) * (canvas.width / 500);
+                        }
+                        if (Math.random() > 0.5) {
+                            planet.moon = {
+                                dist: (70 + Math.random() * 30) * (canvas.width / 500),
+                                radius: (5 + Math.random() * 10) * (canvas.width / 500),
+                                angle: Math.random() * Math.PI * 2,
+                                speed: 0.05 + Math.random() * 0.05,
+                                color: '#e0e0e0'
+                            };
+                        } else {
+                            planet.moon = null;
+                        }
+                    }
+                });
+            }
+
+            // Nebula/Cosmic Dust
+            let nebulaParticles = [];
+            const NEBULA_COUNT = 50;
+
+            function createNebulaParticles() {
+                nebulaParticles = [];
+                for (let i = 0; i < NEBULA_COUNT; i++) {
+                    nebulaParticles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        radius: Math.random() * 15 + 5,
+                        color: `rgba(0, 255, 255, ${Math.random() * 0.05 + 0.01})`, // Faint cyan/blue
+                        speed: 0.05 + Math.random() * 0.15
+                    });
+                }
+            }
+
+            function drawNebula() {
+                 const currentSpeedFactor = (obstacleSpeed / initialObstacleSpeed); 
+                nebulaParticles.forEach(p => {
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    p.x -= p.speed * currentSpeedFactor;
+                    if (p.x < -p.radius) {
+                        p.x = canvas.width + p.radius + Math.random() * canvas.width;
+                        p.y = Math.random() * canvas.height;
+                    }
+                });
+            }
+
+            // Sun/Moon
+            let sunMoon = {
+                x: canvas.width * 0.8,
+                y: canvas.height * 0.2,
+                radius: canvas.width * 0.15,
+                colorStart: { r: 255, g: 200, b: 0 }, // Yellow-orange sun
+                colorEnd: { r: 150, g: 200, b: 255 }, // Pale blue moon
+                speed: 0.03 // Very slow movement
+            };
+
+            function drawSunMoon(currentScore) {
+                const scoreCap = 2000; // Score at which transition completes
+                const progress = Math.min(currentScore, scoreCap) / scoreCap;
+
+                const r = Math.floor(sunMoon.colorStart.r + (sunMoon.colorEnd.r - sunMoon.colorStart.r) * progress);
+                const g = Math.floor(sunMoon.colorStart.g + (sunMoon.colorEnd.g - sunMoon.colorStart.g) * progress);
+                const b = Math.floor(sunMoon.colorStart.b + (sunMoon.colorEnd.b - sunMoon.colorStart.b) * progress);
+                
+                sunMoon.x -= sunMoon.speed * (obstacleSpeed / initialObstacleSpeed);
+                if (sunMoon.x + sunMoon.radius < 0) {
+                    sunMoon.x = canvas.width + sunMoon.radius + Math.random() * canvas.width;
+                    sunMoon.y = Math.random() * canvas.height;
+                }
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(sunMoon.x, sunMoon.y, sunMoon.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${r},${g},${b})`;
+                ctx.shadowColor = `rgba(${r},${g},${b}, 0.7)`;
+                ctx.shadowBlur = sunMoon.radius / 2;
+                ctx.fill();
+                ctx.restore();
             }
 
             // --- Obstacle (Asteroid) Class ---
@@ -482,6 +626,7 @@
             // --- Drawing Functions ---
             
             function drawBackground(currentScore) {
+                // Background color shift (darker with score)
                 const minH = 240; 
                 const minS = 50;  
                 const minL = 5;   
@@ -493,6 +638,10 @@
                 
                 ctx.fillStyle = `hsl(${minH}, ${minS}%, ${luminosity}%)`; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                drawNebula();
+                drawPlanets();
+                drawSunMoon(currentScore);
             }
 
             function drawTrack(currentScore) {
@@ -518,8 +667,11 @@
             }
 
             function drawInitialScreen() {
-                drawBackground(0);
-                drawTrack(0);
+                // Draw a simpler background for the start screen
+                ctx.fillStyle = '#0d1117';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                drawStars(); // Keep stars in start screen
+                drawTrack(0); // Draw default track
                 player.draw(); 
                 
                 ctx.fillStyle = '#fff';
@@ -684,8 +836,8 @@
                 if (!gameRunning || isPaused) return; // Check pause state first!
 
                 // 1. Draw Dynamic Background
-                drawBackground(score);
-                drawStars();
+                drawBackground(score); // Now draws complex background
+                drawStars(); // Draw stars on top of everything else in background
 
                 // 2. Update Game State
                 frameCounter++;
@@ -828,6 +980,8 @@
 
             // --- Initial State ---
             resizeCanvas(); 
+            createNebulaParticles(); // Initial creation
+            createPlanets(); // Initial creation
             drawInitialScreen();
         });
     </script>
