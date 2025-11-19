@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Flip: Gravity Switcher</title>
+    <!-- Load Tailwind CSS for easy styling of the main UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the game container and canvas */
+        body {
+            background-color: #0d1117; /* Dark background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #gameContainer {
+            border: 2px solid #30363d;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
+            padding: 10px;
+            background-color: #161b22;
+        }
+
+        #gameCanvas {
+            display: block;
+            /* We let JavaScript handle the background color now */
+            background-color: transparent; 
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%; 
+            height: auto;
+        }
+
+        /* Game Over message styling */
+        .game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 8px;
+            color: #ffffff;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gameContainer" class="w-full max-w-lg mx-4">
+        <!-- Game UI -->
+        <div class="flex justify-between items-center p-2 text-white font-bold text-lg">
+            <h1 class="text-xl font-extrabold text-cyan-400">Cosmic Flip</h1>
+            <div id="scoreDisplay">Score: 0</div>
+        </div>
+
+        <!-- Canvas where the game is drawn -->
+        <div class="relative">
+            <canvas id="gameCanvas" width="500" height="250"></canvas>
+            <!-- Game Over Screen (initially hidden) -->
+            <div id="gameOverScreen" class="game-over-overlay hidden">
+                <div class="text-5xl font-extrabold mb-4 text-red-500">GAME OVER</div>
+                <div id="finalScore" class="text-2xl mb-6 text-gray-200">Final Score: 0</div>
+                <button id="restartButton" class="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg shadow-lg transition duration-200 transform hover:scale-105">
+                    RESTART (SPACE)
+                </button>
+            </div>
+        </div>
+        
+        <!-- Instructions/Controls -->
+        <div class="text-gray-400 text-sm mt-3 p-2 text-center">
+            Press <span class="text-cyan-400 font-bold">SPACE</span> or <span class="text-cyan-400 font-bold">click</span> to **FLIP GRAVITY**!
+            Dodge the space debris on both tracks.
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Global Setup ---
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            const finalScore = document.getElementById('finalScore');
+            const restartButton = document.getElementById('restartButton');
+
+            // --- Game Constants & Variables ---
+            let gameLoopId;
+            let gameRunning = false;
+            let score = 0;
+            let scoreInterval = 0;
+            
+            // Define the Y coordinates for the two tracks
+            const floorY = canvas.height - 20; // Bottom track
+            const ceilingY = 20; // Top track
+            
+            // Continuous acceleration
+            const initialObstacleSpeed = 4;
+            let obstacleSpeed = initialObstacleSpeed;
+            const accelerationRate = 0.0001; 
+            
+            let obstacleSpawnRate = 120; // Frames between spawns
+            let frameCounter = 0;
+
+            // --- Player Object (Gravity Flips) ---
+            const player = {
+                x: 50,
+                y: floorY - 30,
+                width: 25,
+                height: 25,
+                yVelocity: 0,
+                
+                // Gravity system
+                normalGravity: 0.7, // Downward pull value
+                currentGravity: 0.7, // Starts pulling down
+                flipPower: 12, // Initial velocity burst on flip
+                isStuck: true, // If true, player is locked to a track (not airborne)
+                isUpsideDown: false, // Tracks if player is on the ceiling track
+
+                draw() {
+                    ctx.save();
+                    // Color is cyan for floor, orange/red for ceiling
+                    ctx.fillStyle = this.isUpsideDown ? '#f97316' : '#0ff'; 
+                    ctx.shadowColor = this.isUpsideDown ? '#f97316' : '#0ff';
+                    ctx.shadowBlur = 10;
+                    // Draw a square for the spaceship
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                    ctx.restore();
+                },
+
+                update() {
+                    // Only apply physics if the player is not stuck to a track
+                    if (!this.isStuck) {
+                        this.yVelocity += this.currentGravity;
+                        this.y += this.yVelocity;
+                    }
+
+                    // Determine the Y position of the track the player is heading toward
+                    const targetTrackY = this.isUpsideDown ? ceilingY : floorY;
+
+                    if (this.isUpsideDown) {
+                        // Collision check for the ceiling (when upside down)
+                        if (this.y <= targetTrackY) {
+                            this.y = targetTrackY;
+                            this.yVelocity = 0;
+                            this.isStuck = true;
+                        }
+                    } else {
+                        // Collision check for the floor (when right side up)
+                        if (this.y >= targetTrackY - this.height) {
+                            this.y = targetTrackY - this.height;
+                            this.yVelocity = 0;
+                            this.isStuck = true;
+                        }
+                    }
+                },
+
+                switchGravity() {
+                    // We only allow a switch if the player is stuck to a surface
+                    if (this.isStuck) {
+                        this.isStuck = false; // Player is now airborne
+                        
+                        // 1. Invert the gravity direction
+                        this.currentGravity *= -1;
+                        this.isUpsideDown = !this.isUpsideDown;
+
+                        // 2. Apply an initial velocity burst (kick) away from the current track
+                        // If currentGravity is now negative (pulling up), apply positive (downward) velocity to push player off floor
+                        // If currentGravity is now positive (pulling down), apply negative (upward) velocity to push player off ceiling
+                        this.yVelocity = this.currentGravity > 0 ? -this.flipPower : this.flipPower;
+                    }
+                }
+            };
+
+            // --- Dynamic Background (Parallax Stars) ---
+            let stars = [];
+            const STAR_LAYERS = [
+                { count: 40, maxRadius: 1.0, baseSpeed: 0.5, color: '#A9A9A9' }, // Slow/Distant
+                { count: 20, maxRadius: 1.5, baseSpeed: 1.5, color: '#FFFFFF' }, // Medium
+                { count: 10, maxRadius: 2.0, baseSpeed: 2.5, color: '#ADD8E6' }  // Fast/Close
+            ];
+            
+            function createStars() {
+                stars = [];
+                STAR_LAYERS.forEach(layer => {
+                    for (let i = 0; i < layer.count; i++) {
+                        stars.push({
+                            x: Math.random() * canvas.width,
+                            y: Math.random() * canvas.height,
+                            radius: Math.random() * layer.maxRadius + 0.5,
+                            baseSpeed: layer.baseSpeed,
+                            color: layer.color
+                        });
+                    }
+                });
+            }
+
+            function drawStars() {
+                // Determine speed factor based on current obstacle speed
+                const currentSpeedFactor = (obstacleSpeed / initialObstacleSpeed); 
+
+                stars.forEach(star => {
+                    ctx.fillStyle = star.color;
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Star speed is based on its layer speed, multiplied by the current game speed factor
+                    star.x -= star.baseSpeed * currentSpeedFactor; 
+
+                    if (star.x < 0) {
+                        star.x = canvas.width;
+                        star.y = Math.random() * canvas.height;
+                    }
+                });
+            }
+
+            // --- Obstacle (Asteroid) Array and Generation ---
+            let obstacles = [];
+            
+            class Asteroid {
+                constructor() {
+                    this.width = 15 + Math.random() * 15;
+                    this.height = this.width;
+                    this.x = canvas.width;
+                    
+                    // Track: 0 for floor, 1 for ceiling (Randomly choose)
+                    this.track = Math.random() < 0.5 ? 0 : 1; 
+
+                    if (this.track === 0) { // Floor
+                        this.y = floorY - this.height;
+                    } else { // Ceiling
+                        this.y = ceilingY;
+                    }
+                }
+
+                draw() {
+                    ctx.fillStyle = '#6b7280'; // Gray color
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#374151';
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width/4, this.y + this.height/4, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                update() {
+                    this.x -= obstacleSpeed;
+                }
+            }
+
+            function spawnObstacle() {
+                obstacles.push(new Asteroid());
+            }
+
+            // --- Drawing Functions ---
+            
+            // Background color changes from Dark Indigo to Black based on score
+            function drawBackground(currentScore) {
+                const minH = 240; // Hue for dark indigo/blue
+                const minS = 50;  // Saturation
+                const minL = 5;   // Luminosity (Very dark)
+                
+                const maxL = 0;   // Luminosity for black
+                
+                // Map score to Luminosity value, capped at score 1500 for full color change
+                const scoreCap = 1500;
+                const progress = Math.min(currentScore, scoreCap) / scoreCap;
+                
+                // Luminosity decreases as score increases
+                const luminosity = minL + (maxL - minL) * progress;
+                
+                ctx.fillStyle = `hsl(${minH}, ${minS}%, ${luminosity}%)`; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Track color changes from Cyan to Red based on score
+            function drawTrack(currentScore) {
+                const minH = 180; // Cyan (low score)
+                const maxH = 0;   // Red (high score)
+                
+                // Map score to Hue value, capped at score 1500 for full color change
+                const scoreCap = 1500;
+                const progress = Math.min(currentScore, scoreCap) / scoreCap;
+                const hue = minH + (maxH - minH) * progress;
+                
+                // Track color shifts from Cyan (180) to Red (0)
+                ctx.strokeStyle = `hsl(${hue}, 80%, 50%)`;
+                ctx.lineWidth = 2;
+                
+                // Floor Track
+                ctx.beginPath();
+                ctx.moveTo(0, floorY);
+                ctx.lineTo(canvas.width, floorY);
+                ctx.stroke();
+
+                // Ceiling Track
+                ctx.beginPath();
+                ctx.moveTo(0, ceilingY);
+                ctx.lineTo(canvas.width, ceilingY);
+                ctx.stroke();
+            }
+
+            // --- Core Game Functions ---
+
+            function checkCollision(p, o) {
+                // Simple AABB collision detection
+                return p.x < o.x + o.width &&
+                       p.x + p.width > o.x &&
+                       p.y < o.y + o.height &&
+                       p.y + p.height > o.y;
+            }
+
+            function gameOver() {
+                gameRunning = false;
+                cancelAnimationFrame(gameLoopId);
+                finalScore.textContent = `Final Score: ${score}`;
+                gameOverScreen.classList.remove('hidden');
+            }
+
+            function resetGame() {
+                // Reset player position and state
+                player.y = floorY - player.height;
+                player.yVelocity = 0;
+                player.currentGravity = player.normalGravity;
+                player.isStuck = true;
+                player.isUpsideDown = false;
+
+                // Reset obstacles and state
+                obstacles = [];
+                score = 0;
+                scoreInterval = 0;
+                obstacleSpeed = initialObstacleSpeed; // Reset speed
+                frameCounter = 0;
+                obstacleSpawnRate = 120;
+                
+                // Hide game over screen and start loop
+                gameOverScreen.classList.add('hidden');
+                scoreDisplay.textContent = 'Score: 0';
+                gameRunning = true;
+                gameLoop();
+            }
+
+            function gameLoop() {
+                // 1. Draw Dynamic Background
+                drawBackground(score);
+                
+                // Draw star background and apply speed-based parallax
+                drawStars();
+
+                // 2. Update Game State
+                frameCounter++;
+                scoreInterval++;
+                
+                // Increase score every 5 frames
+                if (scoreInterval % 5 === 0) {
+                    score++;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                }
+
+                // Increase difficulty (speed and spawn rate) over time
+                obstacleSpeed += accelerationRate; // Continuous speed increase
+                
+                if (frameCounter % 500 === 0 && obstacleSpawnRate > 35) {
+                    // Less frequent, but more significant, increase in spawn rate
+                    obstacleSpawnRate -= 5;
+                }
+                
+                // 3. Player Update
+                player.update();
+                player.draw();
+                
+                // 4. Obstacle Spawning
+                if (frameCounter % Math.round(obstacleSpawnRate) === 0) {
+                    spawnObstacle();
+                }
+
+                // 5. Obstacle Update, Draw, and Collision Check
+                obstacles.forEach((obstacle, index) => {
+                    obstacle.update();
+                    obstacle.draw();
+
+                    // Check collision
+                    if (checkCollision(player, obstacle)) {
+                        gameOver();
+                    }
+
+                    // Remove obstacles that have moved off screen
+                    if (obstacle.x + obstacle.width < 0) {
+                        obstacles.splice(index, 1);
+                    }
+                });
+
+                // 6. Draw Track (Color changes based on score)
+                drawTrack(score);
+
+                // 7. Request Next Frame
+                if (gameRunning) {
+                    gameLoopId = requestAnimationFrame(gameLoop);
+                }
+            }
+
+            // --- Input Handlers ---
+            function handleAction(e) {
+                if (!gameRunning && gameOverScreen.classList.contains('hidden')) {
+                    // Initial start
+                    resetGame();
+                } else if (!gameRunning && !gameOverScreen.classList.contains('hidden')) {
+                    // Restart from game over screen
+                    resetGame();
+                } else if (gameRunning && (e.code === 'Space' || e.type === 'click')) {
+                    // Gravity switch during gameplay
+                    player.switchGravity();
+                }
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' || e.code === 'ArrowUp') {
+                    e.preventDefault(); // Prevent space from scrolling
+                    handleAction(e);
+                }
+            });
+            
+            canvas.addEventListener('click', (e) => {
+                handleAction(e);
+            });
+
+            restartButton.addEventListener('click', resetGame);
+
+            // --- Initial State ---
+            createStars(); // Populate stars once
+            // Draw initial background
+            drawBackground(0); 
+            
+            // Display a message to start the game
+            ctx.fillStyle = '#fff';
+            ctx.font = '24px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('Press SPACE or Click to Start', canvas.width / 2, canvas.height / 2);
+        });
+    </script>
+</body>
+</html>
