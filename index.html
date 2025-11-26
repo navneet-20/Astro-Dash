@@ -1,1593 +1,1593 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astro Dash: Gravity Switcher</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script> 
-    <style>
-        /* 1. FULLSCREEN IMPLEMENTATION START */
-        html, body {
-            height: 100%; /* Ensure html and body take full height */
-        }
-        
-        body {
-            background-color: #0d1117; /* Dark background */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh; /* Use 100vh for full viewport height */
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Prevent scrolling */
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astro Dash: Gravity Switcher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script> 
+    <style>
+        /* 1. FULLSCREEN IMPLEMENTATION START */
+        html, body {
+            height: 100%; /* Ensure html and body take full height */
+        }
+        
+        body {
+            background-color: #0d1117; /* Dark background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Use 100vh for full viewport height */
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevent scrolling */
+        }
 
-        #gameContainer {
-            /* Full width/height usage, allowing the canvas to scale */
-            width: 100%; 
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            border: none; /* Remove border for true full screen on mobile */
-            border-radius: 0;
-            box-shadow: none;
-            padding: 0;
-            background-color: transparent;
-        }
+        #gameContainer {
+            /* Full width/height usage, allowing the canvas to scale */
+            width: 100%; 
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border: none; /* Remove border for true full screen on mobile */
+            border-radius: 0;
+            box-shadow: none;
+            padding: 0;
+            background-color: transparent;
+        }
 
-        /* Adjust game content container for better spacing on all devices */
-        #gameContentWrapper {
-            flex-grow: 1; /* Allows it to take up available space */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-        }
+        /* Adjust game content container for better spacing on all devices */
+        #gameContentWrapper {
+            flex-grow: 1; /* Allows it to take up available space */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
 
-        /* Canvas container should expand */
-        .relative {
-            flex-grow: 1; /* Allow the canvas area to grow */
-            width: 100%;
-            height: auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px; /* Padding for laptop/desktop view */
-        }
+        /* Canvas container should expand */
+        .relative {
+            flex-grow: 1; /* Allow the canvas area to grow */
+            width: 100%;
+            height: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px; /* Padding for laptop/desktop view */
+        }
 
-        /* Target canvas to be responsive inside its container */
-        #gameCanvas {
-            display: block;
-            background-color: transparent; 
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%; 
-            height: 100%; /* Now set by JS based on ASPECT_RATIO in resizeCanvas, but max-height is important for landscape on mobile */
-        }
-        
-        /* Force max width on laptop/desktop to prevent stretching too far */
-        @media (min-width: 1024px) {
-            #gameContainer {
-                max-width: 1200px; /* Large screen limit */
-                max-height: 800px; /* Fixed aspect ratio limit */
-                margin: auto;
-                border: 2px solid #30363d;
-                border-radius: 12px;
-                box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
-                background-color: #161b22;
-            }
-            .relative {
-                padding: 10px;
-            }
-        }
-        /* 1. FULLSCREEN IMPLEMENTATION END */
-        
-        /* Overlay styling */
-        .game-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            border-radius: 8px;
-            color: #ffffff;
-            text-align: center;
-        }
+        /* Target canvas to be responsive inside its container */
+        #gameCanvas {
+            display: block;
+            background-color: transparent; 
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%; 
+            height: 100%; /* Now set by JS based on ASPECT_RATIO in resizeCanvas, but max-height is important for landscape on mobile */
+        }
+        
+        /* Force max width on laptop/desktop to prevent stretching too far */
+        @media (min-width: 1024px) {
+            #gameContainer {
+                max-width: 1200px; /* Large screen limit */
+                max-height: 800px; /* Fixed aspect ratio limit */
+                margin: auto;
+                border: 2px solid #30363d;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
+                background-color: #161b22;
+            }
+            .relative {
+                padding: 10px;
+            }
+        }
+        /* 1. FULLSCREEN IMPLEMENTATION END */
+        
+        /* Overlay styling */
+        .game-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 8px;
+            color: #ffffff;
+            text-align: center;
+        }
 
-        /* Custom color radio button styles */
-        .color-option {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 3px solid transparent;
-            margin: 0 5px;
-            transition: transform 0.1s;
-        }
-        input[type="radio"]:checked + .color-option {
-            border-color: #ffffff;
-            transform: scale(1.1);
-        }
-        
-        /* 3. MOBILE FIRE BUTTON STYLE */
-        #mobileFireButton {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            z-index: 15; /* Above overlays */
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background-color: #ff0000;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-            border: 4px solid #ff6666;
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
-            user-select: none;
-            touch-action: manipulation;
-        }
-    </style>
+        /* Custom color radio button styles */
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            margin: 0 5px;
+            transition: transform 0.1s;
+        }
+        input[type="radio"]:checked + .color-option {
+            border-color: #ffffff;
+            transform: scale(1.1);
+        }
+        
+        /* 3. MOBILE FIRE BUTTON STYLE */
+        #mobileFireButton {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 15; /* Above overlays */
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #ff0000;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            border: 4px solid #ff6666;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+            user-select: none;
+            touch-action: manipulation;
+        }
+    </style>
 </head>
 <body>
 
-    <div id="gameContainer" class="mx-auto">
-        <div class="flex justify-between items-center p-2 text-white font-bold text-base sm:text-lg">
-            <h1 class="text-lg sm:text-xl font-extrabold text-cyan-400">Astro Dash</h1>
-            <div class="flex items-center space-x-2 sm:space-x-4">
-                <div id="highScoreDisplay" class="text-xs sm:text-base font-semibold text-gray-400">HI: 0</div>
-                <div id="powerupStatusDisplay" class="text-xs sm:text-sm font-semibold text-orange-400 min-w-[120px] sm:min-w-[150px] text-right"></div>
-                
-                <div id="scoreDisplay" class="text-sm sm:text-base">Score: 0</div>
-                <button id="pauseButton" class="px-2 py-0.5 bg-gray-700 hover:bg-gray-600 text-white text-xs sm:text-sm rounded-md shadow transition duration-150 transform hover:scale-105 hidden">
-                    Pause (P)
-                </button>
-            </div>
-        </div>
-
-        <div id="gameContentWrapper" class="relative">
-            <canvas id="gameCanvas"></canvas> 
-            
-            <div id="startScreen" class="game-overlay">
-                <div class="text-4xl font-extrabold mb-8 text-cyan-400">CUSTOMIZE SHIP</div>
-                
-                <div class="mb-6">
-                    <label class="block text-lg mb-2 font-semibold">Choose Shape:</label>
-                    <div class="flex justify-center space-x-4 flex-wrap">
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="shape" value="square" checked class="form-radio text-cyan-500">
-                            <span class="text-white">Square (Default)</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="shape" value="circle" class="form-radio text-cyan-500">
-                            <span class="text-white">Circle</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="shape" value="triangle" class="form-radio text-cyan-500">
-                            <span class="text-white">Triangle</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="shape" value="custom" class="form-radio text-cyan-500">
-                            <span class="text-white">Custom (JPG/PNG)</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div id="customUploadContainer" class="mt-4 hidden w-full max-w-sm mx-auto p-2 bg-gray-800 rounded-lg">
-                    <input type="file" id="customShipUpload" accept=".jpg, .jpeg, .png" class="text-sm w-full text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100">
-                    <p id="uploadMessage" class="text-xs mt-1 text-gray-400 text-left">Max 400KB file size.</p>
-                </div>
-                <div class="mb-8">
-                    <label class="block text-lg mb-2 font-semibold">Choose Color:</label>
-                    <div class="flex justify-center">
-                        <label>
-                            <input type="radio" name="color" value="#0ff" checked class="hidden">
-                            <div class="color-option" style="background-color: #0ff;"></div>
-                        </label>
-                        <label>
-                            <input type="radio" name="color" value="#facc15" class="hidden">
-                            <div class="color-option" style="background-color: #facc15;"></div>
-                        </label>
-                        <label>
-                            <input type="radio" name="color" value="#f43f5e" class="hidden">
-                            <div class="color-option" style="background-color: #f43f5e;"></div>
-                        </label>
-                        <label>
-                            <input type="radio" name="color" value="#a78bfa" class="hidden">
-                            <div class="color-option" style="background-color: #a78bfa;"></div>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="mb-6 text-center">
-                    <label class="inline-flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" id="muteToggle" class="form-checkbox text-cyan-500 w-5 h-5 rounded" checked>
-                        <span class="text-white font-semibold">Mute Sound</span>
-                    </label>
-                </div>
-
-                <button id="startButton" class="px-8 py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xl rounded-lg shadow-xl transition duration-200 transform hover:scale-105">
-                    START GAME
-                </button>
-                <div class="text-sm mt-4 text-gray-400">Or press SPACE to start with default settings.</div>
-            </div>
-
-            <div id="gameOverScreen" class="game-overlay hidden">
-                <div class="text-5xl font-extrabold mb-4 text-red-500">GAME OVER</div>
-                <div id="finalScore" class="text-2xl mb-6 text-gray-200">Final Score: 0</div>
-                <div class="flex space-x-4">
-                    <button id="restartButton" class="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg shadow-lg transition duration-200 transform hover:scale-105">
-                        RESTART (SPACE)
-                    </button>
-                    <button id="goHomeButton" class="px-6 py-3 bg-gray-600 hover:bg-gray-500 text-white font-bold rounded-lg shadow-lg transition duration-200 transform hover:scale-105">
-                        GO HOME
-                    </button>
-                </div>
-            </div>
-            
-            <div id="pauseScreen" class="game-overlay hidden">
-                <div class="text-5xl font-extrabold mb-4 text-cyan-400">PAUSED</div>
-                <div class="text-xl text-gray-200">Press P or click to Resume</div>
-            </div>
-
-            <button id="mobileFireButton" class="sm:hidden hidden">
-                FIRE
-            </button>
-
-        </div>
-        
-        <div class="text-gray-400 text-sm mt-3 p-2 text-center">
-            Press <span class="text-cyan-400 font-bold">SPACE</span> or <span class="text-cyan-400 font-bold">click</span> to FLIP TRACKS!
-            <span class="sm:hidden block">(Tap left/right side of screen to flip)</span>
-        </div>
-        
-        <div id="rotationTip" class="block sm:hidden text-yellow-400 text-xs mt-2 p-1 text-center bg-gray-800 rounded">
-            Tip: Rotate your screen horizontally for a better experience!
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- FIREBASE SETUP ---
-            setLogLevel('Debug');
-            
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-            let db, auth, userId = null;
-            let highScore = 0;
-            const HIGHSCORE_PATH = `artifacts/${appId}/public/data/astroDashScores/highScore`;
-            const highScoreDisplay = document.getElementById('highScoreDisplay');
-
-            async function initializeFirebase() {
-                try {
-                    const app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
-
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-
-                    onAuthStateChanged(auth, (user) => {
-                        if (user) {
-                            userId = user.uid;
-                            setupHighScoreListener();
-                        } else {
-                            // If user signs out, we still need a temporary ID for saving progress (if rules allowed)
-                            userId = crypto.randomUUID();
-                        }
-                    });
-                } catch (error) {
-                    console.error("Firebase Initialization Failed:", error);
-                }
-            }
-
-            function setupHighScoreListener() {
-                const docRef = doc(db, HIGHSCORE_PATH);
-                onSnapshot(docRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        highScore = docSnap.data().value || 0;
-                    }
-                    highScoreDisplay.textContent = `HI: ${highScore}`;
-                }, (error) => {
-                    console.error("Error listening to high score:", error);
-                    highScoreDisplay.textContent = `HI: ${highScore}`;
-                });
-            }
-
-            async function updateHighScore(newScore) {
-                if (newScore > highScore && db) {
-                    highScore = newScore;
-                    highScoreDisplay.textContent = `HI: ${highScore}`;
-                    try {
-                        const docRef = doc(db, HIGHSCORE_PATH);
-                        // Use setDoc with merge:true to ensure we only update the score field
-                        await setDoc(docRef, { value: newScore, userId: userId, lastUpdated: new Date() }, { merge: true });
-                    } catch (error) {
-                        console.error("Error updating high score:", error);
-                    }
-                }
-            }
-            
-            // --- Audio Setup (Tone.js) ---
-            let flipSynth, hitSynth, collectSynth, gameOverSynth;
-            let audioContextStarted = false;
-            let isMuted = true; // NEW: Default to muted
-
-            function initAudio() {
-                // 1. Flip Sound (Quick metallic whoosh)
-                flipSynth = new Tone.NoiseSynth({
-                    noise: { type: "pink" },
-                    envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 }
-                }).toDestination();
-
-                // 2. Hit/Blast Sound (Short, sharp laser)
-                hitSynth = new Tone.Synth({
-                    oscillator: { type: "square" },
-                    envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.05 }
-                }).toDestination();
-
-                // 3. Collect Sound (Ascending chime)
-                collectSynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: "triangle" },
-                    envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 }
-                }).toDestination();
-
-                // 4. Game Over Sound (Low, descending tone)
-                gameOverSynth = new Tone.MembraneSynth({
-                    pitchDecay: 0.02,
-                    octaves: 1,
-                    envelope: { attack: 0.001, decay: 0.4, sustain: 0, release: 0.5 }
-                }).toDestination();
-
-                // Required to start the AudioContext on user interaction
-                document.body.addEventListener('click', () => {
-                    if (!audioContextStarted) {
-                        Tone.start();
-                        audioContextStarted = true;
-                    }
-                }, { once: true });
-                
-                // NEW: Mute Toggle Listener
-                const muteToggle = document.getElementById('muteToggle');
-                muteToggle.addEventListener('change', () => {
-                    isMuted = muteToggle.checked;
-                });
-            }
-            
-            // --- Global Setup ---
-            const canvas = document.getElementById('gameCanvas');
-            const ctx = canvas.getContext('2d');
-            const scoreDisplay = document.getElementById('scoreDisplay');
-            const statusDisplay = document.getElementById('powerupStatusDisplay');
-            const gameOverScreen = document.getElementById('gameOverScreen');
-            const startScreen = document.getElementById('startScreen');
-            const pauseScreen = document.getElementById('pauseScreen');
-            const finalScore = document.getElementById('finalScore');
-            const restartButton = document.getElementById('restartButton');
-            const startButton = document.getElementById('startButton');
-            const goHomeButton = document.getElementById('goHomeButton'); 
-            const pauseButton = document.getElementById('pauseButton');
-            const mobileFireButton = document.getElementById('mobileFireButton'); // NEW
-            // NEW: Mute Toggle element
-            const muteToggle = document.getElementById('muteToggle');
-            
-            // Customization DOM elements
-            const customShipUpload = document.getElementById('customShipUpload');
-            const customUploadContainer = document.getElementById('customUploadContainer');
-            const uploadMessage = document.getElementById('uploadMessage');
-            const shapeRadios = document.querySelectorAll('input[name="shape"]');
-
-            // --- Game Constants & Variables ---
-            let gameLoopId;
-            let gameRunning = false;
-            let isPaused = false;
-            let score = 0;
-            let scoreInterval = 0;
-            
-            let floorY; 
-            let ceilingY; 
-            const MARGIN_FROM_EDGE = 20; 
-
-            const initialObstacleSpeed = 4;
-            let obstacleSpeed = initialObstacleSpeed;
-            const accelerationRate = 0.0001; 
-            
-            let obstacleSpawnRate = 120; 
-            let frameCounter = 0;
-
-            // --- GAME STATE VARIABLES ---
-            let customPlayerImage = null;
-            let isInvincible = false;
-            let invincibilityFrames = 0;
-            const INVINCIBILITY_DURATION = 600; // 10 seconds * 60 fps
-            
-            let hasGunPowerup = false; 
-            let gunFrames = 0;
-            const GUN_DURATION = 900; // 15 seconds * 60 fps
-            let bullets = []; 
-            let explosions = []; 
-            let trails = []; // Player engine trails
-
-            let obstacles = []; 
-            let powerups = []; 
-            
-            // Camera Shake State
-            let cameraShake = {
-                duration: 0,
-                magnitude: 0
-            };
-            
-            // Power-up Timing
-            const MIN_POWERUP_FRAMES = 720; // 12 seconds * 60 FPS
-            const MAX_POWERUP_FRAMES = 1080; // 18 seconds * 60 FPS
-            let powerupSpawnCounter = 0; 
-
-            function getRandomPowerupFrames() {
-                return Math.floor(Math.random() * (MAX_POWERUP_FRAMES - MIN_POWERUP_FRAMES + 1)) + MIN_POWERUP_FRAMES;
-            }
-
-            // --- Canvas Resizing & Responsiveness ---
-            const ASPECT_RATIO = 2.0; 
-
-            function resizeCanvas() {
-                const contentWrapper = document.getElementById('gameContentWrapper');
-                const contentWidth = contentWrapper.clientWidth - 20; // Accounting for 10px padding on each side
-                const contentHeight = contentWrapper.clientHeight - 20;
-
-                let calculatedWidth, calculatedHeight;
-
-                // Priority for fixed aspect ratio
-                if (contentWidth / contentHeight > ASPECT_RATIO) {
-                    // Limited by height (e.g., in mobile landscape or tall laptop container)
-                    calculatedHeight = contentHeight;
-                    calculatedWidth = contentHeight * ASPECT_RATIO;
-                } else {
-                    // Limited by width (e.g., in mobile portrait or wide desktop container)
-                    calculatedWidth = contentWidth;
-                    calculatedHeight = contentWidth / ASPECT_RATIO;
-                }
-
-                // Snap canvas size to the calculated dimensions
-                canvas.width = calculatedWidth;
-                canvas.height = calculatedHeight;
-                
-                // Recalculate margins and player size based on new canvas size
-                // MARGIN_FROM_EDGE is scaled by canvas width to maintain relative position
-                const MARGIN_SCALE = canvas.width / 500;
-                floorY = canvas.height - MARGIN_FROM_EDGE * MARGIN_SCALE; 
-                ceilingY = MARGIN_FROM_EDGE * MARGIN_SCALE;
-                
-                player.width = Math.max(25, canvas.width / 20); 
-                player.height = player.width;
-
-                createStars(); 
-                createPlanets(); 
-                createNebulaParticles(); 
-
-                player.flipTargetY = player.isUpsideDown ? ceilingY : (floorY - player.height);
-                
-                if (!gameRunning) {
-                    player.y = player.flipTargetY;
-                }
-                
-                if (!gameRunning && startScreen && !startScreen.classList.contains('hidden')) {
-                    drawInitialScreen();
-                } 
-            }
-            window.addEventListener('resize', resizeCanvas);
-
-
-            // --- Player Object (Animated Flips) ---
-            const player = {
-                x: 50,
-                y: 0, 
-                width: 25, 
-                height: 25, 
-                
-                isUpsideDown: false,
-                shape: 'square', 
-                color: '#0ff',
-
-                flipTargetY: 0, 
-                flipStep: 20, 
-
-                draw() {
-                    const halfWidth = this.width / 2;
-                    const halfHeight = this.height / 2;
-                    
-                    // Invincibility Flashing Effect: flash every 5 frames
-                    const flash = isInvincible && Math.floor(invincibilityFrames / 5) % 2 === 0;
-
-                    // 1. Draw Custom Image if selected and loaded
-                    if (this.shape === 'custom' && customPlayerImage && customPlayerImage.complete) {
-                        ctx.save();
-                        if (flash) {
-                               // Apply a white overlay for the flash effect
-                            ctx.filter = 'brightness(200%) drop-shadow(0 0 10px white)';
-                        }
-                        ctx.drawImage(customPlayerImage, this.x, this.y, this.width, this.height);
-                        ctx.restore();
-                        return; 
-                    }
-                    
-                    // 2. Standard shapes (Square, Circle, Triangle) get shadow and color
-                    ctx.save();
-                    
-                    const defaultColor = this.isUpsideDown ? '#f97316' : this.color; 
-                    const drawColor = flash ? '#FFFFFF' : defaultColor; 
-
-                    ctx.fillStyle = drawColor; 
-                    // 2. SHINING AROUND THE OBJECT: Increased Shadow Blur
-                    ctx.shadowColor = drawColor;
-                    ctx.shadowBlur = flash ? 25 : 15; // Increased from 20/10
-                    
-                    if (this.shape === 'square') {
-                        ctx.fillRect(this.x, this.y, this.width, this.height);
-                    } else if (this.shape === 'circle') {
-                        ctx.beginPath();
-                        ctx.arc(this.x + halfWidth, this.y + halfHeight, halfWidth, 0, Math.PI * 2);
-                        ctx.fill();
-                    } else if (this.shape === 'triangle') {
-                        // Draw a triangle pointing forward (right)
-                        ctx.beginPath();
-                        ctx.moveTo(this.x + this.width, this.y + halfHeight); 
-                        ctx.lineTo(this.x, this.y + this.height);
-                        ctx.lineTo(this.x, this.y); 
-                        ctx.closePath();
-                        ctx.fill();
-                    }
-
-                    ctx.restore();
-                },
-
-                update() {
-                    // Engine Trail Generation
-                    if (gameRunning && !isPaused && frameCounter % 3 === 0) {
-                        trails.push(new EngineTrail(this.x + this.width/4, this.y + this.height/2, this.color));
-                    }
-                    
-                    // Smooth movement towards the flip target
-                    if (this.y !== this.flipTargetY) {
-                        const direction = Math.sign(this.flipTargetY - this.y);
-                        const scaleFactor = canvas.width / 500;
-                        this.y += direction * this.flipStep * scaleFactor; 
-                        
-                        // Check if we passed the target and snap if so
-                        if (direction > 0 && this.y >= this.flipTargetY ||
-                            direction < 0 && this.y <= this.flipTargetY) {
-                            this.y = this.flipTargetY;
-                        }
-                    }
-                },
-
-                switchTrack() {
-                    const isSnapped = Math.abs(this.y - this.flipTargetY) < 1;
-                    if (isSnapped) {
-                        // Play flip sound only if not muted
-                        if (audioContextStarted && !isMuted) {
-                            flipSynth.triggerAttackRelease("4n");
-                        }
-                        
-                        const newUpsideDown = !this.isUpsideDown;
-                        this.isUpsideDown = newUpsideDown;
-                        
-                        this.flipTargetY = newUpsideDown ? ceilingY : (floorY - this.height);
-                    }
-                }
-            };
-
-            // --- Engine Trail Class ---
-            class EngineTrail {
-                constructor(x, y, color) {
-                    this.x = x;
-                    this.y = y;
-                    this.radius = 2 * (canvas.width / 500);
-                    this.life = 15;
-                    this.color = color;
-                }
-
-                draw() {
-                    const opacity = this.life / 15;
-                    ctx.fillStyle = this.color + Math.floor(opacity * 255).toString(16).padStart(2, '0');
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.radius * (this.life / 15), 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                update() {
-                    this.x -= obstacleSpeed * (canvas.width / 500) * 0.5; // Slower than player
-                    this.life--;
-                    return this.life <= 0;
-                }
-            }
-
-
-            // --- Dynamic Background Layers (Stars, Planets, Nebula) ---
-            let stars = [];
-            const STAR_LAYERS = [
-                { count: 40, maxRadius: 1.0, baseSpeed: 0.5, color: '#A9A9A9' }, 
-                { count: 20, maxRadius: 1.5, baseSpeed: 1.5, color: '#FFFFFF' }, 
-                { count: 10, maxRadius: 2.0, baseSpeed: 2.5, color: '#ADD8E6' }  
-            ];
-            
-            function createStars() {
-                stars = [];
-                STAR_LAYERS.forEach(layer => {
-                    for (let i = 0; i < layer.count; i++) {
-                        stars.push({
-                            x: Math.random() * canvas.width,
-                            y: Math.random() * canvas.height,
-                            radius: (Math.random() * layer.maxRadius + 0.5) * (canvas.width / 500), // Scaled radius
-                            baseSpeed: layer.baseSpeed,
-                            color: layer.color
-                        });
-                    }
-                });
-            }
-
-            function drawStars() {
-                const currentSpeedFactor = (obstacleSpeed / initialObstacleSpeed); 
-
-                stars.forEach(star => {
-                    ctx.fillStyle = star.color;
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    star.x -= star.baseSpeed * currentSpeedFactor * (canvas.width / 500); // Scaled speed
-
-                    if (star.x < 0) {
-                        star.x = canvas.width;
-                        star.y = Math.random() * canvas.height;
-                    }
-                });
-            }
-
-            // Planets
-            let planets = [];
-            const PLANET_COUNT = 3;
-            const PLANET_COLORS = ['#f43f5e', '#a78bfa', '#0ea5e9', '#22c55e', '#fbbf24'];
-
-            function createPlanets() {
-                planets = [];
-                for (let i = 0; i < PLANET_COUNT; i++) {
-                    planets.push({
-                        x: canvas.width + Math.random() * canvas.width * 2,
-                        y: Math.random() * canvas.height,
-                        radius: (20 + Math.random() * 50) * (canvas.width / 500), 
-                        color: PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)],
-                        speed: 0.1 + Math.random() * 0.3,
-                        hasRings: Math.random() > 0.7,
-                        ringTilt: Math.random() * Math.PI / 4,
-                        ringWidth: (10 + Math.random() * 20) * (canvas.width / 500),
-                        moon: Math.random() > 0.5 ? {
-                            dist: (70 + Math.random() * 30) * (canvas.width / 500),
-                            radius: (5 + Math.random() * 10) * (canvas.width / 500),
-                            angle: Math.random() * Math.PI * 2,
-                            speed: 0.05 + Math.random() * 0.05,
-                            color: '#e0e0e0'
-                        } : null
-                    });
-                }
-            }
-
-            function drawPlanets() {
-                const currentSpeedFactor = (obstacleSpeed / initialObstacleSpeed); 
-
-                planets.forEach(planet => {
-                    const scaledLineWidth = 2 * (canvas.width / 500);
-                    // Draw rings first if any
-                    if (planet.hasRings) {
-                        ctx.save();
-                        ctx.translate(planet.x, planet.y);
-                        ctx.rotate(planet.ringTilt);
-                        ctx.beginPath();
-                        ctx.ellipse(0, 0, planet.radius * 1.5, planet.ringWidth / 2, 0, 0, Math.PI * 2);
-                        ctx.strokeStyle = planet.color + '80'; // Semi-transparent
-                        ctx.lineWidth = scaledLineWidth;
-                        ctx.stroke();
-                        ctx.restore();
-                    }
-
-                    // Draw main planet
-                    ctx.fillStyle = planet.color;
-                    ctx.beginPath();
-                    ctx.arc(planet.x, planet.y, planet.radius, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Draw moon if any
-                    if (planet.moon) {
-                        planet.moon.angle += planet.moon.speed * currentSpeedFactor;
-                        const moonX = planet.x + planet.moon.dist * Math.cos(planet.moon.angle);
-                        const moonY = planet.y + planet.moon.dist * Math.sin(planet.moon.angle);
-                        ctx.fillStyle = planet.moon.color;
-                        ctx.beginPath();
-                        ctx.arc(moonX, moonY, planet.moon.radius, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-
-                    planet.x -= planet.speed * currentSpeedFactor * (canvas.width / 500); // Scaled speed
-
-                    if (planet.x + planet.radius < 0) {
-                        planet.x = canvas.width + Math.random() * canvas.width * 2;
-                        planet.y = Math.random() * canvas.height;
-                        planet.radius = (20 + Math.random() * 50) * (canvas.width / 500);
-                        planet.color = PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)];
-                        planet.speed = 0.1 + Math.random() * 0.3;
-                        planet.hasRings = Math.random() > 0.7;
-                        if(planet.hasRings) {
-                            planet.ringTilt = Math.random() * Math.PI / 4;
-                            planet.ringWidth = (10 + Math.random() * 20) * (canvas.width / 500);
-                        }
-                        if (Math.random() > 0.5) {
-                            planet.moon = {
-                                dist: (70 + Math.random() * 30) * (canvas.width / 500),
-                                radius: (5 + Math.random() * 10) * (canvas.width / 500),
-                                angle: Math.random() * Math.PI * 2,
-                                speed: 0.05 + Math.random() * 0.05,
-                                color: '#e0e0e0'
-                            };
-                        } else {
-                            planet.moon = null;
-                        }
-                    }
-                });
-            }
-
-            // Nebula/Cosmic Dust
-            let nebulaParticles = [];
-            const NEBULA_COUNT = 50;
-
-            function createNebulaParticles() {
-                nebulaParticles = [];
-                for (let i = 0; i < NEBULA_COUNT; i++) {
-                    nebulaParticles.push({
-                        x: Math.random() * canvas.width,
-                        y: Math.random() * canvas.height,
-                        radius: (Math.random() * 15 + 5) * (canvas.width / 500), // Scaled radius
-                        color: `rgba(0, 255, 255, ${Math.random() * 0.05 + 0.01})`, // Faint cyan/blue
-                        speed: 0.05 + Math.random() * 0.15
-                    });
-                }
-            }
-
-            function drawNebula() {
-                 const currentSpeedFactor = (obstacleSpeed / initialObstacleSpeed); 
-                nebulaParticles.forEach(p => {
-                    ctx.fillStyle = p.color;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    p.x -= p.speed * currentSpeedFactor * (canvas.width / 500); // Scaled speed
-                    if (p.x < -p.radius) {
-                        p.x = canvas.width + p.radius + Math.random() * canvas.width;
-                        p.y = Math.random() * canvas.height;
-                    }
-                });
-            }
-
-            // Sun/Moon
-            let sunMoon = {
-                x: canvas.width * 0.8,
-                y: canvas.height * 0.2,
-                radius: canvas.width * 0.15,
-                colorStart: { r: 255, g: 200, b: 0 }, 
-                colorEnd: { r: 150, g: 200, b: 255 }, 
-                speed: 0.03,
-                isDrawn: false,
-            };
-
-            function drawSunMoon(currentScore) {
-                // Only draw if the object is currently in view
-                if (!sunMoon.isDrawn && sunMoon.x < canvas.width * 1.5) {
-                    sunMoon.isDrawn = true;
-                }
-                
-                if (sunMoon.isDrawn) {
-                    const scoreCap = 2000; 
-                    const progress = Math.min(currentScore, scoreCap) / scoreCap;
-
-                    const r = Math.floor(sunMoon.colorStart.r + (sunMoon.colorEnd.r - sunMoon.colorStart.r) * progress);
-                    const g = Math.floor(sunMoon.colorStart.g + (sunMoon.colorEnd.g - sunMoon.colorStart.g) * progress);
-                    const b = Math.floor(sunMoon.colorStart.b + (sunMoon.colorEnd.b - sunMoon.colorStart.b) * progress);
-                    
-                    sunMoon.x -= sunMoon.speed * (obstacleSpeed / initialObstacleSpeed) * (canvas.width / 500); // Scaled speed
-                    
-                    // Recalculate radius based on current canvas size
-                    sunMoon.radius = canvas.width * 0.15;
-
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(sunMoon.x, sunMoon.y, sunMoon.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgb(${r},${g},${b})`;
-                    ctx.shadowColor = `rgba(${r},${g},${b}, 0.7)`;
-                    ctx.shadowBlur = sunMoon.radius / 2;
-                    ctx.fill();
-                    ctx.restore();
-                    
-                    // Reset if it moves completely off screen
-                    if (sunMoon.x + sunMoon.radius < 0) {
-                        sunMoon.x = canvas.width * 2 + Math.random() * canvas.width;
-                        sunMoon.y = Math.random() * canvas.height;
-                        sunMoon.isDrawn = false;
-                    }
-                }
-            }
-
-            // --- Explosion Class ---
-            class Explosion {
-                constructor(x, y, radius) {
-                    this.x = x;
-                    this.y = y;
-                    this.radius = radius;
-                    this.maxRadius = radius * 3;
-                    this.life = 0;
-                    this.maxLife = 15; // Animation lasts for 15 frames
-                    this.color = '255, 100, 0'; // Orange/Red color
-                }
-
-                draw() {
-                    const progress = this.life / this.maxLife;
-                    const currentRadius = this.radius + (this.maxRadius - this.radius) * progress;
-                    const opacity = 1 - progress;
-
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${this.color}, ${opacity})`;
-                    ctx.shadowColor = `rgba(${this.color}, ${opacity})`;
-                    ctx.shadowBlur = currentRadius / 2;
-                    ctx.fill();
-                    ctx.restore();
-                }
-
-                update() {
-                    this.life++;
-                    return this.life > this.maxLife; // Returns true when explosion is finished
-                }
-            }
-
-
-            // --- Obstacle (Asteroid) Class ---
-            class Obstacle {
-                constructor() {
-                    this.width = (15 + Math.random() * 15) * (canvas.width / 500);
-                    this.height = this.width;
-                    this.x = canvas.width;
-                    
-                    this.track = Math.random() < 0.5 ? 0 : 1; 
-                    
-                    // Randomly choose a color variant (dark or light gray)
-                    const isDark = Math.random() < 0.5;
-                    this.color = isDark ? '#374151' : '#a1a1aa'; // Dark or Light gray
-                    this.detailColor = isDark ? '#1f2937' : '#6b7280'; // Darker/Darker details
-
-                    this.rotation = Math.random() * 2 * Math.PI; // Initial random rotation
-                    this.rotationSpeed = (Math.random() * 0.05 + 0.01) * (Math.random() < 0.5 ? 1 : -1); // Random speed and direction
-
-                    if (this.track === 0) { // Floor
-                        this.y = floorY - this.height;
-                    } else { // Ceiling
-                        this.y = ceilingY;
-                    }
-                }
-
-                draw() {
-                    const cx = this.x + this.width / 2;
-                    const cy = this.y + this.height / 2;
-
-                    ctx.save();
-                    ctx.translate(cx, cy);
-                    ctx.rotate(this.rotation);
-                    
-                    // Draw main body
-                    ctx.fillStyle = this.color;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, this.width / 2, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Draw details (relative to the rotated center)
-                    ctx.fillStyle = this.detailColor;
-                    ctx.beginPath();
-                    // Positions scaled relative to the asteroid's width
-                    ctx.arc(this.width * 0.25, this.height * 0.25, 3 * (canvas.width / 500), 0, Math.PI * 2); 
-                    ctx.fill();
-                    
-                    ctx.restore(); // Restore context to remove rotation/translation
-                }
-
-                update() {
-                    const scaledSpeed = obstacleSpeed * (canvas.width / 500);
-                    this.x -= scaledSpeed;
-                    
-                    // Update rotation (scaled slightly for effect)
-                    this.rotation += this.rotationSpeed * (canvas.width / 500) * 0.5; 
-                }
-            }
-            
-            // --- Powerup (Star/Safe) Class ---
-            class Star {
-                constructor(xPos) { 
-                    this.width = (15 + Math.random() * 5) * (canvas.width / 500);
-                    this.height = this.width;
-                    this.x = xPos; 
-                    this.track = Math.random() < 0.5 ? 0 : 1; 
-                    this.y = this.track === 0 ? floorY - this.height : ceilingY;
-                }
-
-                draw() {
-                    ctx.save();
-                    ctx.fillStyle = '#FFD700'; // Gold color
-                    ctx.shadowColor = '#FFD700';
-                    ctx.shadowBlur = 15 * (canvas.width / 500); // Scaled shadow
-                    
-                    // Draw Star shape
-                    const r = this.width / 2;
-                    const cx = this.x + r;
-                    const cy = this.y + r;
-                    const points = 5;
-                    const outerR = r;
-                    const innerR = r / 2;
-
-                    ctx.beginPath();
-                    for (let i = 0; i < points * 2; i++) {
-                        const currentR = i % 2 === 0 ? outerR : innerR;
-                        const angle = (Math.PI / points) * i;
-                        const x = cx + currentR * Math.cos(angle - Math.PI / 2);
-                        const y = cy + currentR * Math.sin(angle - Math.PI / 2);
-                        if (i === 0) {
-                            ctx.moveTo(x, y);
-                        } else {
-                            ctx.lineTo(x, y);
-                        }
-                    }
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.restore();
-                }
-
-                update() {
-                    this.x -= obstacleSpeed * (canvas.width / 500); // Scaled speed
-                }
-            }
-
-            // --- Powerup (Gun) Class ---
-            class GunPowerup {
-                constructor(xPos) { 
-                    this.width = (15 + Math.random() * 5) * (canvas.width / 500);
-                    this.height = this.width / 2; 
-                    this.x = xPos; 
-                    this.track = Math.random() < 0.5 ? 0 : 1;
-                    this.y = this.track === 0 ? floorY - this.height : ceilingY;
-                }
-
-                draw() {
-                    ctx.save();
-                    ctx.fillStyle = '#ff6600'; // Orange color for gun
-                    ctx.shadowColor = '#ff6600';
-                    ctx.shadowBlur = 15 * (canvas.width / 500); // Scaled shadow
-                    
-                    // Draw Bullet/Missile Shape 
-                    const w = this.width;
-                    const h = this.height;
-                    const halfH = h / 2;
-                    
-                    ctx.beginPath();
-                    // Body (Rectangle)
-                    ctx.fillRect(this.x, this.y, w * 0.7, h); 
-                    // Tip (Triangle)
-                    ctx.moveTo(this.x + w * 0.7, this.y);
-                    ctx.lineTo(this.x + w * 1.2, this.y + halfH);
-                    ctx.lineTo(this.x + w * 0.7, this.y + h);
-                    ctx.closePath();
-                    ctx.fill();
-
-                    // Fin 1 (Small white/grey rectangle for detail)
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                    ctx.fillRect(this.x + w * 0.1, this.y + 0, w * 0.2, h * 0.2);
-                    
-                    ctx.restore();
-                }
-
-                update() {
-                    this.x -= obstacleSpeed * (canvas.width / 500); // Scaled speed
-                }
-            }
-
-            // --- Bullet Class ---
-            class Bullet {
-                constructor(player) {
-                    this.width = 10 * (canvas.width / 500); // Scaled width
-                    this.height = 3 * (canvas.width / 500); // Scaled height
-                    this.x = player.x + player.width;
-                    this.y = player.y + player.height / 2 - this.height / 2;
-                    this.speed = 15; 
-                    this.color = '#ff0000';
-                }
-
-                draw() {
-                    ctx.save();
-                    ctx.fillStyle = this.color;
-                    ctx.shadowColor = this.color;
-                    ctx.shadowBlur = 5 * (canvas.width / 500); // Scaled shadow
-                    ctx.fillRect(this.x, this.y, this.width, this.height);
-                    ctx.restore();
-                }
-
-                update() {
-                    this.x += this.speed * (canvas.width / 500); // Scaled speed
-                }
-            }
-
-            // --- Drawing Functions ---
-            
-            function drawBackground(currentScore) {
-                // Background color shift (darker with score)
-                const minH = 240; 
-                const minS = 50;  
-                const minL = 5;    
-                const maxL = 0;    
-                
-                const scoreCap = 1500;
-                const progress = Math.min(currentScore, scoreCap) / scoreCap;
-                const luminosity = minL + (maxL - minL) * progress;
-                
-                ctx.fillStyle = `hsl(${minH}, ${minS}%, ${luminosity}%)`; 
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                drawNebula();
-                drawPlanets();
-                drawSunMoon(currentScore);
-            }
-
-            function drawTrack(currentScore) {
-                const minH = 180; 
-                const maxH = 0;   
-                
-                const scoreCap = 1500;
-                const progress = Math.min(currentScore, scoreCap) / scoreCap;
-                const hue = minH + (maxH - minH) * progress;
-                
-                ctx.strokeStyle = `hsl(${hue}, 80%, 50%)`;
-                ctx.lineWidth = 2 * (canvas.width / 500); // Scaled line width
-                
-                ctx.beginPath();
-                ctx.moveTo(0, floorY);
-                ctx.lineTo(canvas.width, floorY);
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(0, ceilingY);
-                ctx.lineTo(canvas.width, ceilingY);
-                ctx.stroke();
-            }
-
-            function drawInitialScreen() {
-                // Draw a simpler background for the start screen
-                ctx.fillStyle = '#0d1117';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                drawStars(); // Keep stars in start screen
-                drawTrack(0); // Draw default track
-                player.draw(); 
-                
-                ctx.fillStyle = '#fff';
-                // Scaled font size
-                ctx.font = `${Math.min(24, canvas.width / 20)}px Inter`;
-                ctx.textAlign = 'center';
-                // Only draw instructions if there's space
-                if (canvas.height > 200) {
-                    ctx.fillText('Choose your ship and click START', canvas.width / 2, canvas.height / 2);
-                }
-            }
-
-            // --- Customization Handlers ---
-
-            shapeRadios.forEach(radio => {
-                radio.addEventListener('change', () => {
-                    if (radio.value === 'custom') {
-                        customUploadContainer.classList.remove('hidden');
-                        uploadMessage.textContent = 'Max 400KB file size.';
-                        uploadMessage.classList.remove('text-red-400');
-                        uploadMessage.classList.add('text-gray-400');
-                    } else {
-                        customUploadContainer.classList.add('hidden');
-                    }
-                    // Update player shape for preview
-                    player.shape = radio.value; 
-                    drawInitialScreen();
-                });
-            });
-
-            customShipUpload.addEventListener('change', function(event) {
-                const file = event.target.files[0];
-                customPlayerImage = null; // Clear previous image
-
-                if (file) {
-                    const MAX_FILE_SIZE = 400 * 1024; // 400 KBs in bytes
-
-                    // 1. File Size Validation
-                    if (file.size > MAX_FILE_SIZE) {
-                        uploadMessage.textContent = 'Error: File size must be under 400KB!';
-                        uploadMessage.classList.remove('text-gray-400', 'text-green-400');
-                        uploadMessage.classList.add('text-red-400');
-                        customShipUpload.value = ''; // Clear file input
-                        return;
-                    }
-
-                    // 2. File Type Validation
-                    if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
-                        uploadMessage.textContent = 'Error: Only JPG or PNG images are allowed.';
-                        uploadMessage.classList.remove('text-gray-400', 'text-green-400');
-                        uploadMessage.classList.add('text-red-400');
-                        customShipUpload.value = ''; 
-                        return;
-                    }
-
-                    // 3. Load Image
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const img = new Image();
-                        img.onload = function() {
-                            customPlayerImage = img;
-                            uploadMessage.textContent = `Image loaded: ${file.name}`;
-                            uploadMessage.classList.remove('text-red-400', 'text-gray-400');
-                            uploadMessage.classList.add('text-green-400');
-                            
-                            // Re-draw the screen to show the custom image
-                            drawInitialScreen(); 
-                        };
-                        img.onerror = function() {
-                            uploadMessage.textContent = 'Error: Could not load image data.';
-                            uploadMessage.classList.remove('text-gray-400', 'text-green-400');
-                            uploadMessage.classList.add('text-red-400');
-                        }
-                        img.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
-
-                } else {
-                    uploadMessage.textContent = 'Max 400KB file size.';
-                    uploadMessage.classList.remove('text-red-400', 'text-green-400');
-                    uploadMessage.classList.add('text-gray-400');
-                }
-            });
-
-            // --- Core Game Functions ---
-
-            function checkCollision(p, o) {
-                return p.x < o.x + o.width &&
-                        p.x + p.width > o.x &&
-                        p.y < o.y + o.height &&
-                        p.y + p.height > o.y;
-            }
-
-            function gameOver() {
-                // Play game over sound only if not muted
-                if (audioContextStarted && !isMuted) {
-                    gameOverSynth.triggerAttackRelease("C2", "2n"); 
-                }
-                
-                gameRunning = false;
-                cancelAnimationFrame(gameLoopId);
-                pauseButton.classList.add('hidden'); // Hide pause button
-                mobileFireButton.classList.add('hidden'); // Hide mobile fire button
-                finalScore.textContent = `Final Score: ${score}`;
-                gameOverScreen.classList.remove('hidden');
-                
-                updateHighScore(score); // Save the score
-            }
-            
-            function togglePause() {
-                if (!gameRunning) return;
-
-                isPaused = !isPaused;
-                if (isPaused) {
-                    pauseScreen.classList.remove('hidden');
-                    pauseButton.textContent = 'Resume (P)';
-                    mobileFireButton.classList.add('hidden'); // Hide mobile fire button
-                } else {
-                    pauseScreen.classList.add('hidden');
-                    pauseButton.textContent = 'Pause (P)';
-                    gameLoop(); // Resume the loop
-                }
-            }
-
-            function fireBullet() {
-                if (hasGunPowerup && gameRunning && !isPaused) {
-                    // Play fire sound only if not muted
-                    if (audioContextStarted && !isMuted) {
-                        hitSynth.triggerAttackRelease("C5", "32n");
-                    }
-                    
-                    // Simple rate limiting: only allow a new bullet if the last one is far enough or array is empty.
-                    const minFireDistance = 10 * (canvas.width / 500); 
-                    if (bullets.length === 0 || bullets[bullets.length - 1].x < player.x + player.width - minFireDistance) {
-                           bullets.push(new Bullet(player));
-                    }
-                }
-            }
-
-            function resetGame() {
-                // Read customization options and apply to player
-                const selectedShape = document.querySelector('input[name="shape"]:checked').value;
-                const selectedColor = document.querySelector('input[name="color"]:checked').value;
-                
-                // If 'custom' is selected but no image is loaded, default to square
-                if (selectedShape === 'custom' && !customPlayerImage) {
-                    player.shape = 'square';
-                } else {
-                    player.shape = selectedShape;
-                }
-                player.color = selectedColor;
-
-                // Reset player position and state
-                player.isUpsideDown = false;
-                player.flipTargetY = floorY - player.height; 
-                player.y = player.flipTargetY; 
-
-                // Reset game state
-                obstacles = [];
-                powerups = []; // Reset powerups array
-                bullets = []; // Reset bullets
-                explosions = []; // Reset explosions
-                trails = []; // Reset trails
-                
-                isInvincible = false; // Reset invincibility
-                invincibilityFrames = 0;
-                
-                hasGunPowerup = false; // Reset gun
-                gunFrames = 0;
-                
-                // Reset Camera Shake
-                cameraShake.duration = 0;
-                
-                // Reset Sun/Moon position
-                sunMoon.x = canvas.width * 2 + Math.random() * canvas.width;
-                sunMoon.y = Math.random() * canvas.height;
-                sunMoon.isDrawn = false;
-
-
-                isPaused = false; // Reset pause state
-                powerupSpawnCounter = getRandomPowerupFrames(); // Randomize first powerup spawn
-                pauseScreen.classList.add('hidden'); // Hide pause screen
-
-                score = 0;
-                scoreInterval = 0;
-                obstacleSpeed = initialObstacleSpeed; 
-                frameCounter = 0;
-                obstacleSpawnRate = 120;
-                
-                // Hide screens and start loop
-                startScreen.classList.add('hidden');
-                gameOverScreen.classList.add('hidden');
-                pauseButton.classList.remove('hidden'); // Show pause button
-                scoreDisplay.textContent = 'Score: 0';
-                statusDisplay.textContent = ''; // Clear status
-                gameRunning = true;
-                gameLoop();
-            }
-
-            function goHome() {
-                gameOverScreen.classList.add('hidden');
-                startScreen.classList.remove('hidden');
-                pauseButton.classList.add('hidden'); // Hide pause button
-                mobileFireButton.classList.add('hidden'); // Hide mobile fire button
-                drawInitialScreen(); 
-            }
-
-            function gameLoop() {
-                if (!gameRunning || isPaused) return; // Check pause state first!
-
-                // 1. Draw Dynamic Background (This also clears the canvas)
-                drawBackground(score); 
-                
-                // 2. Camera Shake Application (must happen after background clear)
-                if (cameraShake.duration > 0) {
-                    cameraShake.duration--;
-                    // Scaling magnitude based on canvas width
-                    const scaledMagnitude = cameraShake.magnitude * (canvas.width / 500); 
-                    const tx = (Math.random() - 0.5) * scaledMagnitude;
-                    const ty = (Math.random() - 0.5) * scaledMagnitude;
-                    ctx.save(); // Save context before applying shake translation
-                    ctx.translate(tx, ty); // Apply translation
-                }
-
-                // Draw background details (Stars, Planets, etc.) - must be before obstacles/player
-                drawStars(); 
-
-                // 3. Update Game State
-                frameCounter++;
-                scoreInterval++;
-                
-                if (scoreInterval % 5 === 0) {
-                    score++;
-                    scoreDisplay.textContent = `Score: ${score}`;
-                }
-
-                obstacleSpeed += accelerationRate; 
-                
-                if (frameCounter % 500 === 0 && obstacleSpawnRate > 35) {
-                    obstacleSpawnRate -= 5;
-                }
-                
-                // 3.1 Invincibility Timer Update
-                if (isInvincible) {
-                    invincibilityFrames--;
-                    if (invincibilityFrames <= 0) {
-                        isInvincible = false;
-                    }
-                }
-
-                // 3.2 Gun Timer Update
-                if (hasGunPowerup) {
-                    gunFrames--;
-                    if (gunFrames <= 0) {
-                        hasGunPowerup = false;
-                        mobileFireButton.classList.add('hidden'); // Hide mobile button when powerup ends
-                    }
-                } else {
-                    mobileFireButton.classList.add('hidden'); // Ensure hidden when not active
-                }
-                
-                // 3.3 Mobile Fire Button Visibility Update
-                if (hasGunPowerup) {
-                    mobileFireButton.classList.remove('hidden'); // Show mobile button when gun is active
-                } else {
-                    mobileFireButton.classList.add('hidden'); // Hide when not active
-                }
-
-                // Update Powerup Status in DOM
-                let statusText = "";
-                let statusColor = 'text-orange-400';
-                
-                if (isInvincible) {
-                    // Renamed power-up in display to SAFE
-                    statusText += `SAFE: ${Math.ceil(invincibilityFrames/60)}s`;
-                }
-                if (hasGunPowerup) {
-                    if (statusText) statusText += " | ";
-                    statusText += `GUN: ${Math.ceil(gunFrames/60)}s (FIRE: Enter)`;
-                    statusColor = 'text-red-500'; // Change color when gun is active
-                }
-                
-                statusDisplay.textContent = statusText;
-                // statusDisplay.className is already handled in the HTML structure
-                
-                // 4. Trail Update and Draw (Draw trails before player)
-                trails = trails.filter(trail => !trail.update());
-                trails.forEach(trail => trail.draw());
-                
-                // 5. Player Update (Move toward target Y) and Draw
-                player.update();
-                player.draw();
-                
-                // 6. Obstacle Spawning
-                if (frameCounter % Math.round(obstacleSpawnRate) === 0) {
-                    obstacles.push(new Obstacle());
-                }
-                
-                // 7. Powerup Spawning (Randomly choose Star or Gun)
-                if (powerups.length === 0) {
-                    powerupSpawnCounter--;
-                    if (powerupSpawnCounter <= 0) {
-                        
-                        // Logic: Calculate safe spawn position (5 player-widths buffer)
-                        const MIN_SPAWN_BUFFER = player.width * 5; 
-                        let spawnX = canvas.width + MIN_SPAWN_BUFFER;
-                        
-                        // If there is an active obstacle, ensure the powerup spawns well ahead of it.
-                        if (obstacles.length > 0) {
-                            const lastObstacle = obstacles[obstacles.length - 1];
-                            spawnX = Math.max(spawnX, lastObstacle.x + lastObstacle.width + MIN_SPAWN_BUFFER);
-                        }
-
-                        // Randomly choose between spawning a Star or a GunPowerup
-                        if (Math.random() < 0.5) {
-                            powerups.push(new Star(spawnX)); // Pass spawnX
-                        } else {
-                            powerups.push(new GunPowerup(spawnX)); // Pass spawnX
-                        }
-                        powerupSpawnCounter = getRandomPowerupFrames(); 
-                    }
-                }
-
-                // 8. Obstacle Update, Draw, and Collision Check
-                obstacles.forEach((obstacle, index) => {
-                    obstacle.update();
-                    obstacle.draw();
-
-                    // Check collision with obstacle
-                    if (checkCollision(player, obstacle)) {
-                        // GAME OVER check only if NOT invincible
-                        if (!isInvincible) {
-                            gameOver();
-                        }
-                    }
-
-                    // Remove obstacles that have moved off screen
-                    if (obstacle.x + obstacle.width < 0) {
-                        obstacles.splice(index, 1);
-                    }
-                });
-
-                // 9. Powerup Update, Draw, and Collection Check
-                powerups.forEach((powerup, index) => {
-                    powerup.update();
-                    powerup.draw();
-
-                    if (checkCollision(player, powerup)) {
-                        // Play collect sound only if not muted
-                        if (audioContextStarted && !isMuted) {
-                            collectSynth.triggerAttackRelease(["C5", "E5", "G5"], "16n");
-                        }
-                        
-                        if (powerup instanceof Star) {
-                            isInvincible = true;
-                            invincibilityFrames = INVINCIBILITY_DURATION;
-                        } else if (powerup instanceof GunPowerup) {
-                            hasGunPowerup = true;
-                            gunFrames = GUN_DURATION;
-                            mobileFireButton.classList.remove('hidden'); // Show mobile button
-                        }
-                        powerups.splice(index, 1); // Remove powerup
-                        powerupSpawnCounter = getRandomPowerupFrames(); // Reset timer after collection
-                    }
-
-                    // Remove powerups that have moved off screen
-                    if (powerup.x + powerup.width < 0) {
-                        powerups.splice(index, 1);
-                        // If it moves off-screen without being collected, reset the counter
-                        powerupSpawnCounter = getRandomPowerupFrames(); 
-                    }
-                });
-
-                // 10. Bullet Update and Collision Check
-                bullets.forEach((bullet, bIndex) => {
-                    bullet.update();
-                    bullet.draw();
-
-                    // Check collision with obstacles
-                    let hitObstacleIndex = -1;
-                    obstacles.forEach((obstacle, oIndex) => {
-                        if (checkCollision(bullet, obstacle)) {
-                            hitObstacleIndex = oIndex;
-                        }
-                    });
-
-                    if (hitObstacleIndex !== -1) {
-                        // Trigger camera shake
-                        cameraShake.duration = 10; // frames
-                        cameraShake.magnitude = 5; // magnitude
-
-                        // Create explosion at the point of impact (center of the obstacle)
-                        const hitObstacle = obstacles[hitObstacleIndex];
-                        explosions.push(new Explosion(
-                            hitObstacle.x + hitObstacle.width / 2, 
-                            hitObstacle.y + hitObstacle.height / 2,
-                            hitObstacle.width / 2 // Explosion size based on obstacle size
-                        ));
-
-                        // Remove the hit obstacle and the bullet
-                        obstacles.splice(hitObstacleIndex, 1);
-                        bullets.splice(bIndex, 1);
-                        
-                        // Reward score for the successful shot (100 points)
-                        score += 100; 
-                        scoreDisplay.textContent = `Score: ${score}`;
-                    } else if (bullet.x > canvas.width) {
-                        // Remove the bullet if it moved off screen
-                        bullets.splice(bIndex, 1);
-                    }
-                });
-                
-                // 11. Explosion Update and Draw
-                explosions.forEach((explosion, index) => {
-                    if (explosion.update()) {
-                        explosions.splice(index, 1); // Remove explosion if life is over
-                    } else {
-                        explosion.draw();
-                    }
-                });
-
-
-                // 12. Draw Track
-                drawTrack(score);
-                
-                // 13. Restore context if shaken
-                if (cameraShake.duration > 0) {
-                    ctx.restore(); // Restore context to the pre-shake state
-                }
-
-                // 14. Request Next Frame
-                gameLoopId = requestAnimationFrame(gameLoop);
-            }
-
-            // --- Input Handlers ---
-            function handleAction(e) {
-                if (isPaused) return; // Ignore everything except the pause key/button when paused
-
-                if (!gameRunning && !gameOverScreen.classList.contains('hidden')) {
-                    resetGame();
-                } else if (!gameRunning && startScreen && !startScreen.classList.contains('hidden')) {
-                    // Start game from custom screen
-                    if (e.code === 'Space' || e.type === 'click') {
-                       resetGame();
-                    }
-                } else if (gameRunning && (e.code === 'Space' || e.type === 'click')) {
-                    player.switchTrack();
-                }
-            }
-
-            // Event Listeners
-            document.addEventListener('keydown', (e) => {
-                if (e.code === 'Space' || e.code === 'ArrowUp') {
-                    e.preventDefault(); 
-                    handleAction(e);
-                } else if (e.code === 'Enter') { // Handle Enter key for firing
-                    e.preventDefault();
-                    fireBullet();
-                } else if (e.code === 'KeyP' || e.code === 'Escape') {
-                    if (!gameRunning) return; // Only pause if game has started
-                    if (gameRunning && !startScreen.classList.contains('hidden')) return; // Avoid pausing during config
-                    if (gameRunning) {
-                       togglePause();
-                    }
-                }
-            });
-            
-            canvas.addEventListener('click', (e) => {
-                // If game is running and not paused, flip. If paused, resume.
-                if (gameRunning) {
-                    if (isPaused) {
-                        togglePause();
-                    } else {
-                        handleAction(e);
-                    }
-                } else {
-                    handleAction(e);
-                }
-            });
-
-            // 3. MOBILE FIRE BUTTON LISTENER
-            mobileFireButton.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent the click from also triggering a track flip on the canvas
-                fireBullet();
-            });
-
-            // Button Listeners
-            startButton.addEventListener('click', resetGame);
-            restartButton.addEventListener('click', resetGame);
-            goHomeButton.addEventListener('click', goHome); 
-            pauseButton.addEventListener('click', togglePause);
-
-            // --- Initial State ---
-            initAudio(); // Initialize audio synths
-            initializeFirebase(); // Initialize Firebase and load high score
-            resizeCanvas(); 
-            createNebulaParticles(); 
-            createPlanets(); 
-            drawInitialScreen();
-        });
-    </script>
+    <div id="gameContainer" class="mx-auto">
+        <div class="flex justify-between items-center p-2 text-white font-bold text-base sm:text-lg">
+            <h1 class="text-lg sm:text-xl font-extrabold text-cyan-400">Astro Dash</h1>
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <div id="highScoreDisplay" class="text-xs sm:text-base font-semibold text-gray-400">HI: 0</div>
+                <div id="powerupStatusDisplay" class="text-xs sm:text-sm font-semibold text-orange-400 min-w-[120px] sm:min-w-[150px] text-right"></div>
+                
+                <div id="scoreDisplay" class="text-sm sm:text-base">Score: 0</div>
+                <button id="pauseButton" class="px-2 py-0.5 bg-gray-700 hover:bg-gray-600 text-white text-xs sm:text-sm rounded-md shadow transition duration-150 transform hover:scale-105 hidden">
+                    Pause (P)
+                </button>
+            </div>
+        </div>
+
+        <div id="gameContentWrapper" class="relative">
+            <canvas id="gameCanvas"></canvas> 
+            
+            <div id="startScreen" class="game-overlay">
+                <div class="text-4xl font-extrabold mb-8 text-cyan-400">CUSTOMIZE SHIP</div>
+                
+                <div class="mb-6">
+                    <label class="block text-lg mb-2 font-semibold">Choose Shape:</label>
+                    <div class="flex justify-center space-x-4 flex-wrap">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="shape" value="square" checked class="form-radio text-cyan-500">
+                            <span class="text-white">Square (Default)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="shape" value="circle" class="form-radio text-cyan-500">
+                            <span class="text-white">Circle</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="shape" value="triangle" class="form-radio text-cyan-500">
+                            <span class="text-white">Triangle</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="shape" value="custom" class="form-radio text-cyan-500">
+                            <span class="text-white">Custom (JPG/PNG)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="customUploadContainer" class="mt-4 hidden w-full max-w-sm mx-auto p-2 bg-gray-800 rounded-lg">
+                    <input type="file" id="customShipUpload" accept=".jpg, .jpeg, .png" class="text-sm w-full text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100">
+                    <p id="uploadMessage" class="text-xs mt-1 text-gray-400 text-left">Max 400KB file size.</p>
+                </div>
+                <div class="mb-8">
+                    <label class="block text-lg mb-2 font-semibold">Choose Color:</label>
+                    <div class="flex justify-center">
+                        <label>
+                            <input type="radio" name="color" value="#0ff" checked class="hidden">
+                            <div class="color-option" style="background-color: #0ff;"></div>
+                        </label>
+                        <label>
+                            <input type="radio" name="color" value="#facc15" class="hidden">
+                            <div class="color-option" style="background-color: #facc15;"></div>
+                        </label>
+                        <label>
+                            <input type="radio" name="color" value="#f43f5e" class="hidden">
+                            <div class="color-option" style="background-color: #f43f5e;"></div>
+                        </label>
+                        <label>
+                            <input type="radio" name="color" value="#a78bfa" class="hidden">
+                            <div class="color-option" style="background-color: #a78bfa;"></div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mb-6 text-center">
+                    <label class="inline-flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="muteToggle" class="form-checkbox text-cyan-500 w-5 h-5 rounded" checked>
+                        <span class="text-white font-semibold">Mute Sound</span>
+                    </label>
+                </div>
+
+                <button id="startButton" class="px-8 py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xl rounded-lg shadow-xl transition duration-200 transform hover:scale-105">
+                    START GAME
+                </button>
+                <div class="text-sm mt-4 text-gray-400">Or press SPACE to start with default settings.</div>
+            </div>
+
+            <div id="gameOverScreen" class="game-overlay hidden">
+                <div class="text-5xl font-extrabold mb-4 text-red-500">GAME OVER</div>
+                <div id="finalScore" class="text-2xl mb-6 text-gray-200">Final Score: 0</div>
+                <div class="flex space-x-4">
+                    <button id="restartButton" class="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg shadow-lg transition duration-200 transform hover:scale-105">
+                        RESTART (SPACE)
+                    </button>
+                    <button id="goHomeButton" class="px-6 py-3 bg-gray-600 hover:bg-gray-500 text-white font-bold rounded-lg shadow-lg transition duration-200 transform hover:scale-105">
+                        GO HOME
+                    </button>
+                </div>
+            </div>
+            
+            <div id="pauseScreen" class="game-overlay hidden">
+                <div class="text-5xl font-extrabold mb-4 text-cyan-400">PAUSED</div>
+                <div class="text-xl text-gray-200">Press P or click to Resume</div>
+            </div>
+
+            <button id="mobileFireButton" class="sm:hidden hidden">
+                FIRE
+            </button>
+
+        </div>
+        
+        <div class="text-gray-400 text-sm mt-3 p-2 text-center">
+            Press <span class="text-cyan-400 font-bold">SPACE</span> or <span class="text-cyan-400 font-bold">click</span> to FLIP TRACKS!
+            <span class="sm:hidden block">(Tap left/right side of screen to flip)</span>
+        </div>
+        
+        <div id="rotationTip" class="block sm:hidden text-yellow-400 text-xs mt-2 p-1 text-center bg-gray-800 rounded">
+            Tip: Rotate your screen horizontally for a better experience!
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- FIREBASE SETUP ---
+            setLogLevel('Debug');
+            
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+            let db, auth, userId = null;
+            let highScore = 0;
+            const HIGHSCORE_PATH = `artifacts/${appId}/public/data/astroDashScores/highScore`;
+            const highScoreDisplay = document.getElementById('highScoreDisplay');
+
+            async function initializeFirebase() {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            setupHighScoreListener();
+                        } else {
+                            // If user signs out, we still need a temporary ID for saving progress (if rules allowed)
+                            userId = crypto.randomUUID();
+                        }
+                    });
+                } catch (error) {
+                    console.error("Firebase Initialization Failed:", error);
+                }
+            }
+
+            function setupHighScoreListener() {
+                const docRef = doc(db, HIGHSCORE_PATH);
+                onSnapshot(docRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        highScore = docSnap.data().value || 0;
+                    }
+                    highScoreDisplay.textContent = `HI: ${highScore}`;
+                }, (error) => {
+                    console.error("Error listening to high score:", error);
+                    highScoreDisplay.textContent = `HI: ${highScore}`;
+                });
+            }
+
+            async function updateHighScore(newScore) {
+                if (newScore > highScore && db) {
+                    highScore = newScore;
+                    highScoreDisplay.textContent = `HI: ${highScore}`;
+                    try {
+                        const docRef = doc(db, HIGHSCORE_PATH);
+                        // Use setDoc with merge:true to ensure we only update the score field
+                        await setDoc(docRef, { value: newScore, userId: userId, lastUpdated: new Date() }, { merge: true });
+                    } catch (error) {
+                        console.error("Error updating high score:", error);
+                    }
+                }
+            }
+            
+            // --- Audio Setup (Tone.js) ---
+            let flipSynth, hitSynth, collectSynth, gameOverSynth;
+            let audioContextStarted = false;
+            let isMuted = true; // NEW: Default to muted
+
+            function initAudio() {
+                // 1. Flip Sound (Quick metallic whoosh)
+                flipSynth = new Tone.NoiseSynth({
+                    noise: { type: "pink" },
+                    envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 }
+                }).toDestination();
+
+                // 2. Hit/Blast Sound (Short, sharp laser)
+                hitSynth = new Tone.Synth({
+                    oscillator: { type: "square" },
+                    envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.05 }
+                }).toDestination();
+
+                // 3. Collect Sound (Ascending chime)
+                collectSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 }
+                }).toDestination();
+
+                // 4. Game Over Sound (Low, descending tone)
+                gameOverSynth = new Tone.MembraneSynth({
+                    pitchDecay: 0.02,
+                    octaves: 1,
+                    envelope: { attack: 0.001, decay: 0.4, sustain: 0, release: 0.5 }
+                }).toDestination();
+
+                // Required to start the AudioContext on user interaction
+                document.body.addEventListener('click', () => {
+                    if (!audioContextStarted) {
+                        Tone.start();
+                        audioContextStarted = true;
+                    }
+                }, { once: true });
+                
+                // NEW: Mute Toggle Listener
+                const muteToggle = document.getElementById('muteToggle');
+                muteToggle.addEventListener('change', () => {
+                    isMuted = muteToggle.checked;
+                });
+            }
+            
+            // --- Global Setup ---
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const statusDisplay = document.getElementById('powerupStatusDisplay');
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            const startScreen = document.getElementById('startScreen');
+            const pauseScreen = document.getElementById('pauseScreen');
+            const finalScore = document.getElementById('finalScore');
+            const restartButton = document.getElementById('restartButton');
+            const startButton = document.getElementById('startButton');
+            const goHomeButton = document.getElementById('goHomeButton'); 
+            const pauseButton = document.getElementById('pauseButton');
+            const mobileFireButton = document.getElementById('mobileFireButton'); // NEW
+            // NEW: Mute Toggle element
+            const muteToggle = document.getElementById('muteToggle');
+            
+            // Customization DOM elements
+            const customShipUpload = document.getElementById('customShipUpload');
+            const customUploadContainer = document.getElementById('customUploadContainer');
+            const uploadMessage = document.getElementById('uploadMessage');
+            const shapeRadios = document.querySelectorAll('input[name="shape"]');
+
+            // --- Game Constants & Variables ---
+            let gameLoopId;
+            let gameRunning = false;
+            let isPaused = false;
+            let score = 0;
+            let scoreInterval = 0;
+            
+            let floorY; 
+            let ceilingY; 
+            const MARGIN_FROM_EDGE = 20; 
+
+            const initialObstacleSpeed = 4;
+            let obstacleSpeed = initialObstacleSpeed;
+            const accelerationRate = 0.0001; 
+            
+            let obstacleSpawnRate = 120; 
+            let frameCounter = 0;
+
+            // --- GAME STATE VARIABLES ---
+            let customPlayerImage = null;
+            let isInvincible = false;
+            let invincibilityFrames = 0;
+            const INVINCIBILITY_DURATION = 600; // 10 seconds * 60 fps
+            
+            let hasGunPowerup = false; 
+            let gunFrames = 0;
+            const GUN_DURATION = 900; // 15 seconds * 60 fps
+            let bullets = []; 
+            let explosions = []; 
+            let trails = []; // Player engine trails
+
+            let obstacles = []; 
+            let powerups = []; 
+            
+            // Camera Shake State
+            let cameraShake = {
+                duration: 0,
+                magnitude: 0
+            };
+            
+            // Power-up Timing
+            const MIN_POWERUP_FRAMES = 720; // 12 seconds * 60 FPS
+            const MAX_POWERUP_FRAMES = 1080; // 18 seconds * 60 FPS
+            let powerupSpawnCounter = 0; 
+
+            function getRandomPowerupFrames() {
+                return Math.floor(Math.random() * (MAX_POWERUP_FRAMES - MIN_POWERUP_FRAMES + 1)) + MIN_POWERUP_FRAMES;
+            }
+
+            // --- Canvas Resizing & Responsiveness ---
+            const ASPECT_RATIO = 2.0; 
+
+            function resizeCanvas() {
+                const contentWrapper = document.getElementById('gameContentWrapper');
+                const contentWidth = contentWrapper.clientWidth - 20; // Accounting for 10px padding on each side
+                const contentHeight = contentWrapper.clientHeight - 20;
+
+                let calculatedWidth, calculatedHeight;
+
+                // Priority for fixed aspect ratio
+                if (contentWidth / contentHeight > ASPECT_RATIO) {
+                    // Limited by height (e.g., in mobile landscape or tall laptop container)
+                    calculatedHeight = contentHeight;
+                    calculatedWidth = contentHeight * ASPECT_RATIO;
+                } else {
+                    // Limited by width (e.g., in mobile portrait or wide desktop container)
+                    calculatedWidth = contentWidth;
+                    calculatedHeight = contentWidth / ASPECT_RATIO;
+                }
+
+                // Snap canvas size to the calculated dimensions
+                canvas.width = calculatedWidth;
+                canvas.height = calculatedHeight;
+                
+                // Recalculate margins and player size based on new canvas size
+                // MARGIN_FROM_EDGE is scaled by canvas width to maintain relative position
+                const MARGIN_SCALE = canvas.width / 500;
+                floorY = canvas.height - MARGIN_FROM_EDGE * MARGIN_SCALE; 
+                ceilingY = MARGIN_FROM_EDGE * MARGIN_SCALE;
+                
+                player.width = Math.max(25, canvas.width / 20); 
+                player.height = player.width;
+
+                createStars(); 
+                createPlanets(); 
+                createNebulaParticles(); 
+
+                player.flipTargetY = player.isUpsideDown ? ceilingY : (floorY - player.height);
+                
+                if (!gameRunning) {
+                    player.y = player.flipTargetY;
+                }
+                
+                if (!gameRunning && startScreen && !startScreen.classList.contains('hidden')) {
+                    drawInitialScreen();
+                } 
+            }
+            window.addEventListener('resize', resizeCanvas);
+
+
+            // --- Player Object (Animated Flips) ---
+            const player = {
+                x: 50,
+                y: 0, 
+                width: 25, 
+                height: 25, 
+                
+                isUpsideDown: false,
+                shape: 'square', 
+                color: '#0ff',
+
+                flipTargetY: 0, 
+                flipStep: 20, 
+
+                draw() {
+                    const halfWidth = this.width / 2;
+                    const halfHeight = this.height / 2;
+                    
+                    // Invincibility Flashing Effect: flash every 5 frames
+                    const flash = isInvincible && Math.floor(invincibilityFrames / 5) % 2 === 0;
+
+                    // 1. Draw Custom Image if selected and loaded
+                    if (this.shape === 'custom' && customPlayerImage && customPlayerImage.complete) {
+                        ctx.save();
+                        if (flash) {
+                               // Apply a white overlay for the flash effect
+                            ctx.filter = 'brightness(200%) drop-shadow(0 0 10px white)';
+                        }
+                        ctx.drawImage(customPlayerImage, this.x, this.y, this.width, this.height);
+                        ctx.restore();
+                        return; 
+                    }
+                    
+                    // 2. Standard shapes (Square, Circle, Triangle) get shadow and color
+                    ctx.save();
+                    
+                    const defaultColor = this.isUpsideDown ? '#f97316' : this.color; 
+                    const drawColor = flash ? '#FFFFFF' : defaultColor; 
+
+                    ctx.fillStyle = drawColor; 
+                    // 2. SHINING AROUND THE OBJECT: Increased Shadow Blur
+                    ctx.shadowColor = drawColor;
+                    ctx.shadowBlur = flash ? 25 : 15; // Increased from 20/10
+                    
+                    if (this.shape === 'square') {
+                        ctx.fillRect(this.x, this.y, this.width, this.height);
+                    } else if (this.shape === 'circle') {
+                        ctx.beginPath();
+                        ctx.arc(this.x + halfWidth, this.y + halfHeight, halfWidth, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (this.shape === 'triangle') {
+                        // Draw a triangle pointing forward (right)
+                        ctx.beginPath();
+                        ctx.moveTo(this.x + this.width, this.y + halfHeight); 
+                        ctx.lineTo(this.x, this.y + this.height);
+                        ctx.lineTo(this.x, this.y); 
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+
+                    ctx.restore();
+                },
+
+                update() {
+                    // Engine Trail Generation
+                    if (gameRunning && !isPaused && frameCounter % 3 === 0) {
+                        trails.push(new EngineTrail(this.x + this.width/4, this.y + this.height/2, this.color));
+                    }
+                    
+                    // Smooth movement towards the flip target
+                    if (this.y !== this.flipTargetY) {
+                        const direction = Math.sign(this.flipTargetY - this.y);
+                        const scaleFactor = canvas.width / 500;
+                        this.y += direction * this.flipStep * scaleFactor; 
+                        
+                        // Check if we passed the target and snap if so
+                        if (direction > 0 && this.y >= this.flipTargetY ||
+                            direction < 0 && this.y <= this.flipTargetY) {
+                            this.y = this.flipTargetY;
+                        }
+                    }
+                },
+
+                switchTrack() {
+                    const isSnapped = Math.abs(this.y - this.flipTargetY) < 1;
+                    if (isSnapped) {
+                        // Play flip sound only if not muted
+                        if (audioContextStarted && !isMuted) {
+                            flipSynth.triggerAttackRelease("4n");
+                        }
+                        
+                        const newUpsideDown = !this.isUpsideDown;
+                        this.isUpsideDown = newUpsideDown;
+                        
+                        this.flipTargetY = newUpsideDown ? ceilingY : (floorY - this.height);
+                    }
+                }
+            };
+
+            // --- Engine Trail Class ---
+            class EngineTrail {
+                constructor(x, y, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.radius = 2 * (canvas.width / 500);
+                    this.life = 15;
+                    this.color = color;
+                }
+
+                draw() {
+                    const opacity = this.life / 15;
+                    ctx.fillStyle = this.color + Math.floor(opacity * 255).toString(16).padStart(2, '0');
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius * (this.life / 15), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                update() {
+                    this.x -= obstacleSpeed * (canvas.width / 500) * 0.5; // Slower than player
+                    this.life--;
+                    return this.life <= 0;
+                }
+            }
+
+
+            // --- Dynamic Background Layers (Stars, Planets, Nebula) ---
+            let stars = [];
+            const STAR_LAYERS = [
+                { count: 40, maxRadius: 1.0, baseSpeed: 0.5, color: '#A9A9A9' }, 
+                { count: 20, maxRadius: 1.5, baseSpeed: 1.5, color: '#FFFFFF' }, 
+                { count: 10, maxRadius: 2.0, baseSpeed: 2.5, color: '#ADD8E6' }  
+            ];
+            
+            function createStars() {
+                stars = [];
+                STAR_LAYERS.forEach(layer => {
+                    for (let i = 0; i < layer.count; i++) {
+                        stars.push({
+                            x: Math.random() * canvas.width,
+                            y: Math.random() * canvas.height,
+                            radius: (Math.random() * layer.maxRadius + 0.5) * (canvas.width / 500), // Scaled radius
+                            baseSpeed: layer.baseSpeed,
+                            color: layer.color
+                        });
+                    }
+                });
+            }
+
+            function drawStars() {
+                const currentSpeedFactor = (obstacleSpeed / initialObstacleSpeed); 
+
+                stars.forEach(star => {
+                    ctx.fillStyle = star.color;
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    star.x -= star.baseSpeed * currentSpeedFactor * (canvas.width / 500); // Scaled speed
+
+                    if (star.x < 0) {
+                        star.x = canvas.width;
+                        star.y = Math.random() * canvas.height;
+                    }
+                });
+            }
+
+            // Planets
+            let planets = [];
+            const PLANET_COUNT = 3;
+            const PLANET_COLORS = ['#f43f5e', '#a78bfa', '#0ea5e9', '#22c55e', '#fbbf24'];
+
+            function createPlanets() {
+                planets = [];
+                for (let i = 0; i < PLANET_COUNT; i++) {
+                    planets.push({
+                        x: canvas.width + Math.random() * canvas.width * 2,
+                        y: Math.random() * canvas.height,
+                        radius: (20 + Math.random() * 50) * (canvas.width / 500), 
+                        color: PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)],
+                        speed: 0.1 + Math.random() * 0.3,
+                        hasRings: Math.random() > 0.7,
+                        ringTilt: Math.random() * Math.PI / 4,
+                        ringWidth: (10 + Math.random() * 20) * (canvas.width / 500),
+                        moon: Math.random() > 0.5 ? {
+                            dist: (70 + Math.random() * 30) * (canvas.width / 500),
+                            radius: (5 + Math.random() * 10) * (canvas.width / 500),
+                            angle: Math.random() * Math.PI * 2,
+                            speed: 0.05 + Math.random() * 0.05,
+                            color: '#e0e0e0'
+                        } : null
+                    });
+                }
+            }
+
+            function drawPlanets() {
+                const currentSpeedFactor = (obstacleSpeed / initialObstacleSpeed); 
+
+                planets.forEach(planet => {
+                    const scaledLineWidth = 2 * (canvas.width / 500);
+                    // Draw rings first if any
+                    if (planet.hasRings) {
+                        ctx.save();
+                        ctx.translate(planet.x, planet.y);
+                        ctx.rotate(planet.ringTilt);
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, planet.radius * 1.5, planet.ringWidth / 2, 0, 0, Math.PI * 2);
+                        ctx.strokeStyle = planet.color + '80'; // Semi-transparent
+                        ctx.lineWidth = scaledLineWidth;
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+
+                    // Draw main planet
+                    ctx.fillStyle = planet.color;
+                    ctx.beginPath();
+                    ctx.arc(planet.x, planet.y, planet.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw moon if any
+                    if (planet.moon) {
+                        planet.moon.angle += planet.moon.speed * currentSpeedFactor;
+                        const moonX = planet.x + planet.moon.dist * Math.cos(planet.moon.angle);
+                        const moonY = planet.y + planet.moon.dist * Math.sin(planet.moon.angle);
+                        ctx.fillStyle = planet.moon.color;
+                        ctx.beginPath();
+                        ctx.arc(moonX, moonY, planet.moon.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    planet.x -= planet.speed * currentSpeedFactor * (canvas.width / 500); // Scaled speed
+
+                    if (planet.x + planet.radius < 0) {
+                        planet.x = canvas.width + Math.random() * canvas.width * 2;
+                        planet.y = Math.random() * canvas.height;
+                        planet.radius = (20 + Math.random() * 50) * (canvas.width / 500);
+                        planet.color = PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)];
+                        planet.speed = 0.1 + Math.random() * 0.3;
+                        planet.hasRings = Math.random() > 0.7;
+                        if(planet.hasRings) {
+                            planet.ringTilt = Math.random() * Math.PI / 4;
+                            planet.ringWidth = (10 + Math.random() * 20) * (canvas.width / 500);
+                        }
+                        if (Math.random() > 0.5) {
+                            planet.moon = {
+                                dist: (70 + Math.random() * 30) * (canvas.width / 500),
+                                radius: (5 + Math.random() * 10) * (canvas.width / 500),
+                                angle: Math.random() * Math.PI * 2,
+                                speed: 0.05 + Math.random() * 0.05,
+                                color: '#e0e0e0'
+                            };
+                        } else {
+                            planet.moon = null;
+                        }
+                    }
+                });
+            }
+
+            // Nebula/Cosmic Dust
+            let nebulaParticles = [];
+            const NEBULA_COUNT = 50;
+
+            function createNebulaParticles() {
+                nebulaParticles = [];
+                for (let i = 0; i < NEBULA_COUNT; i++) {
+                    nebulaParticles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        radius: (Math.random() * 15 + 5) * (canvas.width / 500), // Scaled radius
+                        color: `rgba(0, 255, 255, ${Math.random() * 0.05 + 0.01})`, // Faint cyan/blue
+                        speed: 0.05 + Math.random() * 0.15
+                    });
+                }
+            }
+
+            function drawNebula() {
+                 const currentSpeedFactor = (obstacleSpeed / initialObstacleSpeed); 
+                nebulaParticles.forEach(p => {
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    p.x -= p.speed * currentSpeedFactor * (canvas.width / 500); // Scaled speed
+                    if (p.x < -p.radius) {
+                        p.x = canvas.width + p.radius + Math.random() * canvas.width;
+                        p.y = Math.random() * canvas.height;
+                    }
+                });
+            }
+
+            // Sun/Moon
+            let sunMoon = {
+                x: canvas.width * 0.8,
+                y: canvas.height * 0.2,
+                radius: canvas.width * 0.15,
+                colorStart: { r: 255, g: 200, b: 0 }, 
+                colorEnd: { r: 150, g: 200, b: 255 }, 
+                speed: 0.03,
+                isDrawn: false,
+            };
+
+            function drawSunMoon(currentScore) {
+                // Only draw if the object is currently in view
+                if (!sunMoon.isDrawn && sunMoon.x < canvas.width * 1.5) {
+                    sunMoon.isDrawn = true;
+                }
+                
+                if (sunMoon.isDrawn) {
+                    const scoreCap = 2000; 
+                    const progress = Math.min(currentScore, scoreCap) / scoreCap;
+
+                    const r = Math.floor(sunMoon.colorStart.r + (sunMoon.colorEnd.r - sunMoon.colorStart.r) * progress);
+                    const g = Math.floor(sunMoon.colorStart.g + (sunMoon.colorEnd.g - sunMoon.colorStart.g) * progress);
+                    const b = Math.floor(sunMoon.colorStart.b + (sunMoon.colorEnd.b - sunMoon.colorStart.b) * progress);
+                    
+                    sunMoon.x -= sunMoon.speed * (obstacleSpeed / initialObstacleSpeed) * (canvas.width / 500); // Scaled speed
+                    
+                    // Recalculate radius based on current canvas size
+                    sunMoon.radius = canvas.width * 0.15;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(sunMoon.x, sunMoon.y, sunMoon.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgb(${r},${g},${b})`;
+                    ctx.shadowColor = `rgba(${r},${g},${b}, 0.7)`;
+                    ctx.shadowBlur = sunMoon.radius / 2;
+                    ctx.fill();
+                    ctx.restore();
+                    
+                    // Reset if it moves completely off screen
+                    if (sunMoon.x + sunMoon.radius < 0) {
+                        sunMoon.x = canvas.width * 2 + Math.random() * canvas.width;
+                        sunMoon.y = Math.random() * canvas.height;
+                        sunMoon.isDrawn = false;
+                    }
+                }
+            }
+
+            // --- Explosion Class ---
+            class Explosion {
+                constructor(x, y, radius) {
+                    this.x = x;
+                    this.y = y;
+                    this.radius = radius;
+                    this.maxRadius = radius * 3;
+                    this.life = 0;
+                    this.maxLife = 15; // Animation lasts for 15 frames
+                    this.color = '255, 100, 0'; // Orange/Red color
+                }
+
+                draw() {
+                    const progress = this.life / this.maxLife;
+                    const currentRadius = this.radius + (this.maxRadius - this.radius) * progress;
+                    const opacity = 1 - progress;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${this.color}, ${opacity})`;
+                    ctx.shadowColor = `rgba(${this.color}, ${opacity})`;
+                    ctx.shadowBlur = currentRadius / 2;
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                update() {
+                    this.life++;
+                    return this.life > this.maxLife; // Returns true when explosion is finished
+                }
+            }
+
+
+            // --- Obstacle (Asteroid) Class ---
+            class Obstacle {
+                constructor() {
+                    this.width = (15 + Math.random() * 15) * (canvas.width / 500);
+                    this.height = this.width;
+                    this.x = canvas.width;
+                    
+                    this.track = Math.random() < 0.5 ? 0 : 1; 
+                    
+                    // Randomly choose a color variant (dark or light gray)
+                    const isDark = Math.random() < 0.5;
+                    this.color = isDark ? '#374151' : '#a1a1aa'; // Dark or Light gray
+                    this.detailColor = isDark ? '#1f2937' : '#6b7280'; // Darker/Darker details
+
+                    this.rotation = Math.random() * 2 * Math.PI; // Initial random rotation
+                    this.rotationSpeed = (Math.random() * 0.05 + 0.01) * (Math.random() < 0.5 ? 1 : -1); // Random speed and direction
+
+                    if (this.track === 0) { // Floor
+                        this.y = floorY - this.height;
+                    } else { // Ceiling
+                        this.y = ceilingY;
+                    }
+                }
+
+                draw() {
+                    const cx = this.x + this.width / 2;
+                    const cy = this.y + this.height / 2;
+
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(this.rotation);
+                    
+                    // Draw main body
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.width / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw details (relative to the rotated center)
+                    ctx.fillStyle = this.detailColor;
+                    ctx.beginPath();
+                    // Positions scaled relative to the asteroid's width
+                    ctx.arc(this.width * 0.25, this.height * 0.25, 3 * (canvas.width / 500), 0, Math.PI * 2); 
+                    ctx.fill();
+                    
+                    ctx.restore(); // Restore context to remove rotation/translation
+                }
+
+                update() {
+                    const scaledSpeed = obstacleSpeed * (canvas.width / 500);
+                    this.x -= scaledSpeed;
+                    
+                    // Update rotation (scaled slightly for effect)
+                    this.rotation += this.rotationSpeed * (canvas.width / 500) * 0.5; 
+                }
+            }
+            
+            // --- Powerup (Star/Safe) Class ---
+            class Star {
+                constructor(xPos) { 
+                    this.width = (15 + Math.random() * 5) * (canvas.width / 500);
+                    this.height = this.width;
+                    this.x = xPos; 
+                    this.track = Math.random() < 0.5 ? 0 : 1; 
+                    this.y = this.track === 0 ? floorY - this.height : ceilingY;
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.fillStyle = '#FFD700'; // Gold color
+                    ctx.shadowColor = '#FFD700';
+                    ctx.shadowBlur = 15 * (canvas.width / 500); // Scaled shadow
+                    
+                    // Draw Star shape
+                    const r = this.width / 2;
+                    const cx = this.x + r;
+                    const cy = this.y + r;
+                    const points = 5;
+                    const outerR = r;
+                    const innerR = r / 2;
+
+                    ctx.beginPath();
+                    for (let i = 0; i < points * 2; i++) {
+                        const currentR = i % 2 === 0 ? outerR : innerR;
+                        const angle = (Math.PI / points) * i;
+                        const x = cx + currentR * Math.cos(angle - Math.PI / 2);
+                        const y = cy + currentR * Math.sin(angle - Math.PI / 2);
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                update() {
+                    this.x -= obstacleSpeed * (canvas.width / 500); // Scaled speed
+                }
+            }
+
+            // --- Powerup (Gun) Class ---
+            class GunPowerup {
+                constructor(xPos) { 
+                    this.width = (15 + Math.random() * 5) * (canvas.width / 500);
+                    this.height = this.width / 2; 
+                    this.x = xPos; 
+                    this.track = Math.random() < 0.5 ? 0 : 1;
+                    this.y = this.track === 0 ? floorY - this.height : ceilingY;
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.fillStyle = '#ff6600'; // Orange color for gun
+                    ctx.shadowColor = '#ff6600';
+                    ctx.shadowBlur = 15 * (canvas.width / 500); // Scaled shadow
+                    
+                    // Draw Bullet/Missile Shape 
+                    const w = this.width;
+                    const h = this.height;
+                    const halfH = h / 2;
+                    
+                    ctx.beginPath();
+                    // Body (Rectangle)
+                    ctx.fillRect(this.x, this.y, w * 0.7, h); 
+                    // Tip (Triangle)
+                    ctx.moveTo(this.x + w * 0.7, this.y);
+                    ctx.lineTo(this.x + w * 1.2, this.y + halfH);
+                    ctx.lineTo(this.x + w * 0.7, this.y + h);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Fin 1 (Small white/grey rectangle for detail)
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.fillRect(this.x + w * 0.1, this.y + 0, w * 0.2, h * 0.2);
+                    
+                    ctx.restore();
+                }
+
+                update() {
+                    this.x -= obstacleSpeed * (canvas.width / 500); // Scaled speed
+                }
+            }
+
+            // --- Bullet Class ---
+            class Bullet {
+                constructor(player) {
+                    this.width = 10 * (canvas.width / 500); // Scaled width
+                    this.height = 3 * (canvas.width / 500); // Scaled height
+                    this.x = player.x + player.width;
+                    this.y = player.y + player.height / 2 - this.height / 2;
+                    this.speed = 15; 
+                    this.color = '#ff0000';
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.fillStyle = this.color;
+                    ctx.shadowColor = this.color;
+                    ctx.shadowBlur = 5 * (canvas.width / 500); // Scaled shadow
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                    ctx.restore();
+                }
+
+                update() {
+                    this.x += this.speed * (canvas.width / 500); // Scaled speed
+                }
+            }
+
+            // --- Drawing Functions ---
+            
+            function drawBackground(currentScore) {
+                // Background color shift (darker with score)
+                const minH = 240; 
+                const minS = 50;  
+                const minL = 5;    
+                const maxL = 0;    
+                
+                const scoreCap = 1500;
+                const progress = Math.min(currentScore, scoreCap) / scoreCap;
+                const luminosity = minL + (maxL - minL) * progress;
+                
+                ctx.fillStyle = `hsl(${minH}, ${minS}%, ${luminosity}%)`; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                drawNebula();
+                drawPlanets();
+                drawSunMoon(currentScore);
+            }
+
+            function drawTrack(currentScore) {
+                const minH = 180; 
+                const maxH = 0;   
+                
+                const scoreCap = 1500;
+                const progress = Math.min(currentScore, scoreCap) / scoreCap;
+                const hue = minH + (maxH - minH) * progress;
+                
+                ctx.strokeStyle = `hsl(${hue}, 80%, 50%)`;
+                ctx.lineWidth = 2 * (canvas.width / 500); // Scaled line width
+                
+                ctx.beginPath();
+                ctx.moveTo(0, floorY);
+                ctx.lineTo(canvas.width, floorY);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, ceilingY);
+                ctx.lineTo(canvas.width, ceilingY);
+                ctx.stroke();
+            }
+
+            function drawInitialScreen() {
+                // Draw a simpler background for the start screen
+                ctx.fillStyle = '#0d1117';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                drawStars(); // Keep stars in start screen
+                drawTrack(0); // Draw default track
+                player.draw(); 
+                
+                ctx.fillStyle = '#fff';
+                // Scaled font size
+                ctx.font = `${Math.min(24, canvas.width / 20)}px Inter`;
+                ctx.textAlign = 'center';
+                // Only draw instructions if there's space
+                if (canvas.height > 200) {
+                    ctx.fillText('Choose your ship and click START', canvas.width / 2, canvas.height / 2);
+                }
+            }
+
+            // --- Customization Handlers ---
+
+            shapeRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'custom') {
+                        customUploadContainer.classList.remove('hidden');
+                        uploadMessage.textContent = 'Max 400KB file size.';
+                        uploadMessage.classList.remove('text-red-400');
+                        uploadMessage.classList.add('text-gray-400');
+                    } else {
+                        customUploadContainer.classList.add('hidden');
+                    }
+                    // Update player shape for preview
+                    player.shape = radio.value; 
+                    drawInitialScreen();
+                });
+            });
+
+            customShipUpload.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                customPlayerImage = null; // Clear previous image
+
+                if (file) {
+                    const MAX_FILE_SIZE = 400 * 1024; // 400 KBs in bytes
+
+                    // 1. File Size Validation
+                    if (file.size > MAX_FILE_SIZE) {
+                        uploadMessage.textContent = 'Error: File size must be under 400KB!';
+                        uploadMessage.classList.remove('text-gray-400', 'text-green-400');
+                        uploadMessage.classList.add('text-red-400');
+                        customShipUpload.value = ''; // Clear file input
+                        return;
+                    }
+
+                    // 2. File Type Validation
+                    if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+                        uploadMessage.textContent = 'Error: Only JPG or PNG images are allowed.';
+                        uploadMessage.classList.remove('text-gray-400', 'text-green-400');
+                        uploadMessage.classList.add('text-red-400');
+                        customShipUpload.value = ''; 
+                        return;
+                    }
+
+                    // 3. Load Image
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            customPlayerImage = img;
+                            uploadMessage.textContent = `Image loaded: ${file.name}`;
+                            uploadMessage.classList.remove('text-red-400', 'text-gray-400');
+                            uploadMessage.classList.add('text-green-400');
+                            
+                            // Re-draw the screen to show the custom image
+                            drawInitialScreen(); 
+                        };
+                        img.onerror = function() {
+                            uploadMessage.textContent = 'Error: Could not load image data.';
+                            uploadMessage.classList.remove('text-gray-400', 'text-green-400');
+                            uploadMessage.classList.add('text-red-400');
+                        }
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+
+                } else {
+                    uploadMessage.textContent = 'Max 400KB file size.';
+                    uploadMessage.classList.remove('text-red-400', 'text-green-400');
+                    uploadMessage.classList.add('text-gray-400');
+                }
+            });
+
+            // --- Core Game Functions ---
+
+            function checkCollision(p, o) {
+                return p.x < o.x + o.width &&
+                        p.x + p.width > o.x &&
+                        p.y < o.y + o.height &&
+                        p.y + p.height > o.y;
+            }
+
+            function gameOver() {
+                // Play game over sound only if not muted
+                if (audioContextStarted && !isMuted) {
+                    gameOverSynth.triggerAttackRelease("C2", "2n"); 
+                }
+                
+                gameRunning = false;
+                cancelAnimationFrame(gameLoopId);
+                pauseButton.classList.add('hidden'); // Hide pause button
+                mobileFireButton.classList.add('hidden'); // Hide mobile fire button
+                finalScore.textContent = `Final Score: ${score}`;
+                gameOverScreen.classList.remove('hidden');
+                
+                updateHighScore(score); // Save the score
+            }
+            
+            function togglePause() {
+                if (!gameRunning) return;
+
+                isPaused = !isPaused;
+                if (isPaused) {
+                    pauseScreen.classList.remove('hidden');
+                    pauseButton.textContent = 'Resume (P)';
+                    mobileFireButton.classList.add('hidden'); // Hide mobile fire button
+                } else {
+                    pauseScreen.classList.add('hidden');
+                    pauseButton.textContent = 'Pause (P)';
+                    gameLoop(); // Resume the loop
+                }
+            }
+
+            function fireBullet() {
+                if (hasGunPowerup && gameRunning && !isPaused) {
+                    // Play fire sound only if not muted
+                    if (audioContextStarted && !isMuted) {
+                        hitSynth.triggerAttackRelease("C5", "32n");
+                    }
+                    
+                    // Simple rate limiting: only allow a new bullet if the last one is far enough or array is empty.
+                    const minFireDistance = 10 * (canvas.width / 500); 
+                    if (bullets.length === 0 || bullets[bullets.length - 1].x < player.x + player.width - minFireDistance) {
+                           bullets.push(new Bullet(player));
+                    }
+                }
+            }
+
+            function resetGame() {
+                // Read customization options and apply to player
+                const selectedShape = document.querySelector('input[name="shape"]:checked').value;
+                const selectedColor = document.querySelector('input[name="color"]:checked').value;
+                
+                // If 'custom' is selected but no image is loaded, default to square
+                if (selectedShape === 'custom' && !customPlayerImage) {
+                    player.shape = 'square';
+                } else {
+                    player.shape = selectedShape;
+                }
+                player.color = selectedColor;
+
+                // Reset player position and state
+                player.isUpsideDown = false;
+                player.flipTargetY = floorY - player.height; 
+                player.y = player.flipTargetY; 
+
+                // Reset game state
+                obstacles = [];
+                powerups = []; // Reset powerups array
+                bullets = []; // Reset bullets
+                explosions = []; // Reset explosions
+                trails = []; // Reset trails
+                
+                isInvincible = false; // Reset invincibility
+                invincibilityFrames = 0;
+                
+                hasGunPowerup = false; // Reset gun
+                gunFrames = 0;
+                
+                // Reset Camera Shake
+                cameraShake.duration = 0;
+                
+                // Reset Sun/Moon position
+                sunMoon.x = canvas.width * 2 + Math.random() * canvas.width;
+                sunMoon.y = Math.random() * canvas.height;
+                sunMoon.isDrawn = false;
+
+
+                isPaused = false; // Reset pause state
+                powerupSpawnCounter = getRandomPowerupFrames(); // Randomize first powerup spawn
+                pauseScreen.classList.add('hidden'); // Hide pause screen
+
+                score = 0;
+                scoreInterval = 0;
+                obstacleSpeed = initialObstacleSpeed; 
+                frameCounter = 0;
+                obstacleSpawnRate = 120;
+                
+                // Hide screens and start loop
+                startScreen.classList.add('hidden');
+                gameOverScreen.classList.add('hidden');
+                pauseButton.classList.remove('hidden'); // Show pause button
+                scoreDisplay.textContent = 'Score: 0';
+                statusDisplay.textContent = ''; // Clear status
+                gameRunning = true;
+                gameLoop();
+            }
+
+            function goHome() {
+                gameOverScreen.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+                pauseButton.classList.add('hidden'); // Hide pause button
+                mobileFireButton.classList.add('hidden'); // Hide mobile fire button
+                drawInitialScreen(); 
+            }
+
+            function gameLoop() {
+                if (!gameRunning || isPaused) return; // Check pause state first!
+
+                // 1. Draw Dynamic Background (This also clears the canvas)
+                drawBackground(score); 
+                
+                // 2. Camera Shake Application (must happen after background clear)
+                if (cameraShake.duration > 0) {
+                    cameraShake.duration--;
+                    // Scaling magnitude based on canvas width
+                    const scaledMagnitude = cameraShake.magnitude * (canvas.width / 500); 
+                    const tx = (Math.random() - 0.5) * scaledMagnitude;
+                    const ty = (Math.random() - 0.5) * scaledMagnitude;
+                    ctx.save(); // Save context before applying shake translation
+                    ctx.translate(tx, ty); // Apply translation
+                }
+
+                // Draw background details (Stars, Planets, etc.) - must be before obstacles/player
+                drawStars(); 
+
+                // 3. Update Game State
+                frameCounter++;
+                scoreInterval++;
+                
+                if (scoreInterval % 5 === 0) {
+                    score++;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                }
+
+                obstacleSpeed += accelerationRate; 
+                
+                if (frameCounter % 500 === 0 && obstacleSpawnRate > 35) {
+                    obstacleSpawnRate -= 5;
+                }
+                
+                // 3.1 Invincibility Timer Update
+                if (isInvincible) {
+                    invincibilityFrames--;
+                    if (invincibilityFrames <= 0) {
+                        isInvincible = false;
+                    }
+                }
+
+                // 3.2 Gun Timer Update
+                if (hasGunPowerup) {
+                    gunFrames--;
+                    if (gunFrames <= 0) {
+                        hasGunPowerup = false;
+                        mobileFireButton.classList.add('hidden'); // Hide mobile button when powerup ends
+                    }
+                } else {
+                    mobileFireButton.classList.add('hidden'); // Ensure hidden when not active
+                }
+                
+                // 3.3 Mobile Fire Button Visibility Update
+                if (hasGunPowerup) {
+                    mobileFireButton.classList.remove('hidden'); // Show mobile button when gun is active
+                } else {
+                    mobileFireButton.classList.add('hidden'); // Hide when not active
+                }
+
+                // Update Powerup Status in DOM
+                let statusText = "";
+                let statusColor = 'text-orange-400';
+                
+                if (isInvincible) {
+                    // Renamed power-up in display to SAFE
+                    statusText += `SAFE: ${Math.ceil(invincibilityFrames/60)}s`;
+                }
+                if (hasGunPowerup) {
+                    if (statusText) statusText += " | ";
+                    statusText += `GUN: ${Math.ceil(gunFrames/60)}s (FIRE: Enter)`;
+                    statusColor = 'text-red-500'; // Change color when gun is active
+                }
+                
+                statusDisplay.textContent = statusText;
+                // statusDisplay.className is already handled in the HTML structure
+                
+                // 4. Trail Update and Draw (Draw trails before player)
+                trails = trails.filter(trail => !trail.update());
+                trails.forEach(trail => trail.draw());
+                
+                // 5. Player Update (Move toward target Y) and Draw
+                player.update();
+                player.draw();
+                
+                // 6. Obstacle Spawning
+                if (frameCounter % Math.round(obstacleSpawnRate) === 0) {
+                    obstacles.push(new Obstacle());
+                }
+                
+                // 7. Powerup Spawning (Randomly choose Star or Gun)
+                if (powerups.length === 0) {
+                    powerupSpawnCounter--;
+                    if (powerupSpawnCounter <= 0) {
+                        
+                        // Logic: Calculate safe spawn position (5 player-widths buffer)
+                        const MIN_SPAWN_BUFFER = player.width * 5; 
+                        let spawnX = canvas.width + MIN_SPAWN_BUFFER;
+                        
+                        // If there is an active obstacle, ensure the powerup spawns well ahead of it.
+                        if (obstacles.length > 0) {
+                            const lastObstacle = obstacles[obstacles.length - 1];
+                            spawnX = Math.max(spawnX, lastObstacle.x + lastObstacle.width + MIN_SPAWN_BUFFER);
+                        }
+
+                        // Randomly choose between spawning a Star or a GunPowerup
+                        if (Math.random() < 0.5) {
+                            powerups.push(new Star(spawnX)); // Pass spawnX
+                        } else {
+                            powerups.push(new GunPowerup(spawnX)); // Pass spawnX
+                        }
+                        powerupSpawnCounter = getRandomPowerupFrames(); 
+                    }
+                }
+
+                // 8. Obstacle Update, Draw, and Collision Check
+                obstacles.forEach((obstacle, index) => {
+                    obstacle.update();
+                    obstacle.draw();
+
+                    // Check collision with obstacle
+                    if (checkCollision(player, obstacle)) {
+                        // GAME OVER check only if NOT invincible
+                        if (!isInvincible) {
+                            gameOver();
+                        }
+                    }
+
+                    // Remove obstacles that have moved off screen
+                    if (obstacle.x + obstacle.width < 0) {
+                        obstacles.splice(index, 1);
+                    }
+                });
+
+                // 9. Powerup Update, Draw, and Collection Check
+                powerups.forEach((powerup, index) => {
+                    powerup.update();
+                    powerup.draw();
+
+                    if (checkCollision(player, powerup)) {
+                        // Play collect sound only if not muted
+                        if (audioContextStarted && !isMuted) {
+                            collectSynth.triggerAttackRelease(["C5", "E5", "G5"], "16n");
+                        }
+                        
+                        if (powerup instanceof Star) {
+                            isInvincible = true;
+                            invincibilityFrames = INVINCIBILITY_DURATION;
+                        } else if (powerup instanceof GunPowerup) {
+                            hasGunPowerup = true;
+                            gunFrames = GUN_DURATION;
+                            mobileFireButton.classList.remove('hidden'); // Show mobile button
+                        }
+                        powerups.splice(index, 1); // Remove powerup
+                        powerupSpawnCounter = getRandomPowerupFrames(); // Reset timer after collection
+                    }
+
+                    // Remove powerups that have moved off screen
+                    if (powerup.x + powerup.width < 0) {
+                        powerups.splice(index, 1);
+                        // If it moves off-screen without being collected, reset the counter
+                        powerupSpawnCounter = getRandomPowerupFrames(); 
+                    }
+                });
+
+                // 10. Bullet Update and Collision Check
+                bullets.forEach((bullet, bIndex) => {
+                    bullet.update();
+                    bullet.draw();
+
+                    // Check collision with obstacles
+                    let hitObstacleIndex = -1;
+                    obstacles.forEach((obstacle, oIndex) => {
+                        if (checkCollision(bullet, obstacle)) {
+                            hitObstacleIndex = oIndex;
+                        }
+                    });
+
+                    if (hitObstacleIndex !== -1) {
+                        // Trigger camera shake
+                        cameraShake.duration = 10; // frames
+                        cameraShake.magnitude = 5; // magnitude
+
+                        // Create explosion at the point of impact (center of the obstacle)
+                        const hitObstacle = obstacles[hitObstacleIndex];
+                        explosions.push(new Explosion(
+                            hitObstacle.x + hitObstacle.width / 2, 
+                            hitObstacle.y + hitObstacle.height / 2,
+                            hitObstacle.width / 2 // Explosion size based on obstacle size
+                        ));
+
+                        // Remove the hit obstacle and the bullet
+                        obstacles.splice(hitObstacleIndex, 1);
+                        bullets.splice(bIndex, 1);
+                        
+                        // Reward score for the successful shot (100 points)
+                        score += 100; 
+                        scoreDisplay.textContent = `Score: ${score}`;
+                    } else if (bullet.x > canvas.width) {
+                        // Remove the bullet if it moved off screen
+                        bullets.splice(bIndex, 1);
+                    }
+                });
+                
+                // 11. Explosion Update and Draw
+                explosions.forEach((explosion, index) => {
+                    if (explosion.update()) {
+                        explosions.splice(index, 1); // Remove explosion if life is over
+                    } else {
+                        explosion.draw();
+                    }
+                });
+
+
+                // 12. Draw Track
+                drawTrack(score);
+                
+                // 13. Restore context if shaken
+                if (cameraShake.duration > 0) {
+                    ctx.restore(); // Restore context to the pre-shake state
+                }
+
+                // 14. Request Next Frame
+                gameLoopId = requestAnimationFrame(gameLoop);
+            }
+
+            // --- Input Handlers ---
+            function handleAction(e) {
+                if (isPaused) return; // Ignore everything except the pause key/button when paused
+
+                if (!gameRunning && !gameOverScreen.classList.contains('hidden')) {
+                    resetGame();
+                } else if (!gameRunning && startScreen && !startScreen.classList.contains('hidden')) {
+                    // Start game from custom screen
+                    if (e.code === 'Space' || e.type === 'click') {
+                       resetGame();
+                    }
+                } else if (gameRunning && (e.code === 'Space' || e.type === 'click')) {
+                    player.switchTrack();
+                }
+            }
+
+            // Event Listeners
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' || e.code === 'ArrowUp') {
+                    e.preventDefault(); 
+                    handleAction(e);
+                } else if (e.code === 'Enter') { // Handle Enter key for firing
+                    e.preventDefault();
+                    fireBullet();
+                } else if (e.code === 'KeyP' || e.code === 'Escape') {
+                    if (!gameRunning) return; // Only pause if game has started
+                    if (gameRunning && !startScreen.classList.contains('hidden')) return; // Avoid pausing during config
+                    if (gameRunning) {
+                       togglePause();
+                    }
+                }
+            });
+            
+            canvas.addEventListener('click', (e) => {
+                // If game is running and not paused, flip. If paused, resume.
+                if (gameRunning) {
+                    if (isPaused) {
+                        togglePause();
+                    } else {
+                        handleAction(e);
+                    }
+                } else {
+                    handleAction(e);
+                }
+            });
+
+            // 3. MOBILE FIRE BUTTON LISTENER
+            mobileFireButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent the click from also triggering a track flip on the canvas
+                fireBullet();
+            });
+
+            // Button Listeners
+            startButton.addEventListener('click', resetGame);
+            restartButton.addEventListener('click', resetGame);
+            goHomeButton.addEventListener('click', goHome); 
+            pauseButton.addEventListener('click', togglePause);
+
+            // --- Initial State ---
+            initAudio(); // Initialize audio synths
+            initializeFirebase(); // Initialize Firebase and load high score
+            resizeCanvas(); 
+            createNebulaParticles(); 
+            createPlanets(); 
+            drawInitialScreen();
+        });
+    </script>
 </body>
 </html>
